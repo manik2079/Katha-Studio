@@ -5,6 +5,808 @@ const REGIONS = ["Rajasthan", "Assam", "Tamil Nadu", "Uttar Pradesh"];
 const THEMES = ["courage", "resilience", "justice", "wit"];
 const AGE_TONES = ["family", "kids", "young-adult"];
 
+const PIPELINE_STAGES = [
+  {
+    id: "story-intake",
+    number: "01",
+    title: "Story Intake",
+    blurb: "Curated source filters, region selection, and trust-gated intake.",
+  },
+  {
+    id: "pipeline-status",
+    number: "02",
+    title: "Research Dossier",
+    blurb: "Agent 1 ranks one primary story and backup candidates.",
+  },
+  {
+    id: "review-edit",
+    number: "03",
+    title: "Script Room",
+    blurb: "Agent 2 turns the story into a seven-part oral reel arc.",
+  },
+  {
+    id: "asset-generation",
+    number: "04",
+    title: "Asset Wall",
+    blurb: "Agent 3 generates visuals, voice, music, and subtitle cues.",
+  },
+  {
+    id: "export-download",
+    number: "05",
+    title: "Export Deck",
+    blurb: "Agent 4 renders the reel pack and prepares download bundles.",
+  },
+];
+
+const WORKSPACE_TABS = [
+  { id: "research", label: "Research Deck" },
+  { id: "scripts", label: "Script Room" },
+  { id: "assets", label: "Asset Wall" },
+  { id: "exports", label: "Export Deck" },
+];
+
+const KATHA_CSS = `
+.katha-shell {
+  min-height: 100vh;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 10% 12%, var(--glow-soft), transparent 28%),
+    radial-gradient(circle at 86% 10%, var(--glow-hot), transparent 24%),
+    linear-gradient(180deg, var(--surface) 0%, var(--surface-deep) 100%);
+}
+
+.katha-frame {
+  max-width: 1520px;
+  margin: 0 auto;
+  padding: 28px 18px 92px;
+}
+
+.katha-panel {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(16px);
+}
+
+.katha-hero {
+  position: relative;
+  overflow: hidden;
+  padding: 30px;
+  background:
+    radial-gradient(circle at 18% 20%, rgba(255,255,255,0.08), transparent 24%),
+    radial-gradient(circle at 82% 16%, rgba(197,97,57,0.18), transparent 24%),
+    linear-gradient(135deg, var(--hero-start) 0%, var(--hero-mid) 48%, var(--hero-end) 100%);
+}
+
+.katha-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto -90px -140px auto;
+  width: 360px;
+  height: 360px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,238,208,0.18), transparent 68%);
+  pointer-events: none;
+}
+
+.katha-hero-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.katha-eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+
+.katha-display {
+  margin: 0;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: clamp(40px, 6vw, 76px);
+  line-height: 0.94;
+  letter-spacing: -0.04em;
+}
+
+.katha-display span {
+  color: var(--accent);
+}
+
+.katha-hero-copy {
+  margin: 0;
+  max-width: 760px;
+  font-size: 18px;
+  line-height: 1.62;
+  color: var(--text-soft);
+}
+
+.katha-hero-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 20px;
+  border-radius: 24px;
+  background: var(--panel-soft);
+  border: 1px solid var(--line-soft);
+}
+
+.katha-stat-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border-radius: 18px;
+  background: var(--inner);
+  border: 1px solid var(--line-soft);
+}
+
+.katha-stat-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.katha-stat-value {
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.katha-stat-sub {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.katha-layout {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  gap: 18px;
+  margin-top: 18px;
+  align-items: start;
+}
+
+.katha-rail,
+.katha-overview {
+  position: sticky;
+  top: 94px;
+  display: grid;
+  gap: 18px;
+}
+
+.katha-main {
+  display: grid;
+  gap: 18px;
+}
+
+.katha-section {
+  padding: 24px;
+}
+
+.katha-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.katha-section-title {
+  margin: 4px 0 0;
+  font-size: 32px;
+  line-height: 1.02;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+
+.katha-section-copy {
+  margin: 8px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.katha-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.katha-pill[data-tone="idle"] {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-soft);
+}
+
+.katha-pill[data-tone="warn"] {
+  background: rgba(251,191,36,0.14);
+  color: #fbbf24;
+}
+
+.katha-pill[data-tone="ok"] {
+  background: rgba(74,222,128,0.14);
+  color: #86efac;
+}
+
+.katha-pill[data-tone="live"] {
+  background: rgba(125,211,252,0.14);
+  color: #7dd3fc;
+}
+
+.katha-pill[data-tone="error"] {
+  background: rgba(248,113,113,0.14);
+  color: #fca5a5;
+}
+
+.katha-note {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 20px;
+  background: var(--inner);
+  border: 1px solid var(--line-soft);
+}
+
+.katha-note strong {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+
+.katha-note span {
+  font-size: 14px;
+  line-height: 1.58;
+  color: var(--text-soft);
+}
+
+.katha-grid {
+  display: grid;
+  gap: 14px;
+}
+
+.katha-stage-list,
+.katha-agent-list {
+  display: grid;
+  gap: 12px;
+}
+
+.katha-stage-item,
+.katha-agent-item,
+.katha-story-card,
+.katha-link-card,
+.katha-export-row,
+.katha-reel-editor,
+.katha-preview-card {
+  border-radius: 22px;
+  border: 1px solid var(--line-soft);
+  background: var(--inner);
+}
+
+.katha-stage-item {
+  padding: 14px 15px;
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 12px;
+}
+
+.katha-stage-item[data-active="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+.katha-stage-item[data-complete="true"] .katha-stage-number {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.katha-stage-number {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-soft);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.katha-stage-title {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.katha-stage-copy {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+.katha-control-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.katha-field {
+  display: grid;
+  gap: 7px;
+}
+
+.katha-field span {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.katha-input,
+.katha-select,
+.katha-textarea {
+  width: 100%;
+  border: 1px solid var(--line-soft);
+  background: var(--input);
+  color: var(--text);
+  border-radius: 16px;
+  padding: 13px 14px;
+  font-size: 14px;
+  outline: none;
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.katha-textarea {
+  resize: vertical;
+  line-height: 1.56;
+  min-height: 120px;
+}
+
+.katha-button,
+.katha-button-secondary,
+.katha-tab {
+  border: none;
+  cursor: pointer;
+  transition: transform 0.16s ease, opacity 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+
+.katha-button:hover,
+.katha-button-secondary:hover,
+.katha-tab:hover {
+  transform: translateY(-1px);
+}
+
+.katha-button:disabled,
+.katha-button-secondary:disabled,
+.katha-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  transform: none;
+}
+
+.katha-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 46px;
+  border-radius: 999px;
+  padding: 0 18px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-deep));
+  color: var(--accent-contrast);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.katha-button-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border-radius: 999px;
+  padding: 0 16px;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line-soft);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.katha-agent-item {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.katha-agent-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.katha-agent-name {
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.katha-agent-copy {
+  font-size: 13px;
+  line-height: 1.58;
+  color: var(--muted);
+}
+
+.katha-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.katha-tab {
+  padding: 11px 14px;
+  border-radius: 999px;
+  background: var(--inner);
+  border: 1px solid var(--line-soft);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.katha-tab[data-active="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+  color: var(--text);
+}
+
+.katha-story-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.katha-story-card {
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  text-align: left;
+  color: inherit;
+  cursor: pointer;
+}
+
+.katha-story-card[data-active="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+.katha-story-kicker {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.katha-story-title {
+  font-size: 22px;
+  line-height: 1.08;
+  font-family: "Georgia", "Times New Roman", serif;
+}
+
+.katha-story-copy {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.katha-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.katha-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line-soft);
+  background: rgba(255,255,255,0.04);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-soft);
+}
+
+.katha-story-form,
+.katha-story-two-col {
+  display: grid;
+  gap: 14px;
+}
+
+.katha-story-two-col {
+  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+}
+
+.katha-links {
+  display: grid;
+  gap: 10px;
+}
+
+.katha-link-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 16px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.katha-link-card:hover {
+  border-color: var(--accent-line);
+}
+
+.katha-reel-layout {
+  display: grid;
+  gap: 16px;
+}
+
+.katha-reel-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.katha-reel-tab {
+  border-radius: 18px;
+  border: 1px solid var(--line-soft);
+  background: var(--inner);
+  color: inherit;
+  text-align: left;
+  padding: 12px;
+  cursor: pointer;
+}
+
+.katha-reel-tab[data-active="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
+}
+
+.katha-reel-tab strong {
+  display: block;
+  font-size: 12px;
+  margin-bottom: 8px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
+}
+
+.katha-reel-tab span {
+  display: block;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.katha-reel-editor {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 16px;
+}
+
+.katha-editor-col {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+
+.katha-editor-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.katha-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.katha-preview-card {
+  overflow: hidden;
+}
+
+.katha-preview-visual {
+  position: relative;
+  aspect-ratio: 9 / 16;
+  background: #0f0d0c;
+}
+
+.katha-preview-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.katha-preview-overlay {
+  position: absolute;
+  inset: auto 14px 14px 14px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(7,6,6,0.58);
+  color: #fff7e8;
+  font-size: 13px;
+  line-height: 1.45;
+  backdrop-filter: blur(8px);
+}
+
+.katha-preview-body {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.katha-audio-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.katha-audio-stack audio {
+  width: 100%;
+}
+
+.katha-empty {
+  min-height: 220px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 22px;
+  border-radius: 22px;
+  border: 1px dashed var(--line-soft);
+  background: var(--inner);
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.katha-overview-card {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+
+.katha-overview-copy {
+  font-size: 13px;
+  line-height: 1.62;
+  color: var(--muted);
+}
+
+.katha-progress {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+}
+
+.katha-progress-bar {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+}
+
+.katha-export-list {
+  display: grid;
+  gap: 12px;
+}
+
+.katha-export-row {
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.katha-export-meta {
+  display: grid;
+  gap: 4px;
+}
+
+.katha-export-title {
+  font-weight: 800;
+}
+
+.katha-export-sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.katha-alert {
+  padding: 14px 18px;
+  border-radius: 22px;
+  border: 1px solid rgba(248,113,113,0.26);
+  background: rgba(127,29,29,0.08);
+  color: #fecaca;
+  line-height: 1.56;
+}
+
+@media (max-width: 1280px) {
+  .katha-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .katha-rail,
+  .katha-overview {
+    position: static;
+  }
+
+  .katha-rail {
+    order: 2;
+  }
+
+  .katha-overview {
+    order: 3;
+  }
+
+  .katha-main {
+    order: 1;
+  }
+}
+
+@media (max-width: 980px) {
+  .katha-hero-grid,
+  .katha-story-two-col,
+  .katha-reel-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .katha-story-grid,
+  .katha-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .katha-reel-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .katha-hero {
+    padding: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  .katha-frame {
+    padding: 18px 12px 64px;
+  }
+
+  .katha-hero,
+  .katha-section {
+    padding: 18px;
+  }
+
+  .katha-hero-metrics {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .katha-reel-strip {
+    grid-template-columns: 1fr;
+  }
+
+  .katha-export-row {
+    grid-template-columns: 1fr;
+  }
+}
+`;
+
 function formatBytes(bytes) {
   if (!bytes) return "0 KB";
   const units = ["B", "KB", "MB", "GB"];
@@ -84,42 +886,65 @@ function downloadBlob(blob, fileName) {
   URL.revokeObjectURL(url);
 }
 
-function StatusPill({ label, tone }) {
-  const colors = {
-    idle: ["rgba(255,255,255,0.08)", "#f7ebd1"],
-    warn: ["rgba(251,191,36,0.14)", "#fbbf24"],
-    ok: ["rgba(74,222,128,0.14)", "#86efac"],
-    live: ["rgba(125,211,252,0.14)", "#7dd3fc"],
-    error: ["rgba(248,113,113,0.14)", "#fca5a5"],
-  };
-  const [bg, color] = colors[tone] || colors.idle;
+function revokeExportUrls(items) {
+  for (const item of items) {
+    if (item?.url) URL.revokeObjectURL(item.url);
+  }
+}
+
+function getStageIndex(stage) {
+  return Math.max(
+    1,
+    PIPELINE_STAGES.findIndex((item) => item.id === stage) + 1 || 1
+  );
+}
+
+function getAgentTone(status) {
+  switch (status) {
+    case "working":
+      return "live";
+    case "ready":
+      return "ok";
+    case "blocked":
+      return "warn";
+    default:
+      return "idle";
+  }
+}
+
+function StatusPill({ label, tone = "idle" }) {
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        padding: "7px 12px",
-        borderRadius: "999px",
-        background: bg,
-        color,
-        fontSize: "11px",
-        fontWeight: 700,
-        letterSpacing: "0.06em",
-        textTransform: "uppercase",
-      }}
-    >
+    <span className="katha-pill" data-tone={tone}>
       {label}
     </span>
   );
 }
 
-function StoryMetric({ label, value }) {
+function StatCard({ label, value, sub }) {
   return (
-    <div style={{ display: "grid", gap: 4 }}>
-      <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(247,235,209,0.64)" }}>{label}</div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "#fff3dc" }}>{value}</div>
+    <div className="katha-stat-card">
+      <div className="katha-stat-label">{label}</div>
+      <div className="katha-stat-value">{value}</div>
+      <div className="katha-stat-sub">{sub}</div>
     </div>
   );
+}
+
+function SectionHeader({ eyebrow, title, copy, actions }) {
+  return (
+    <div className="katha-header-row">
+      <div>
+        <div className="katha-eyebrow">{eyebrow}</div>
+        <h2 className="katha-section-title">{title}</h2>
+        {copy ? <p className="katha-section-copy">{copy}</p> : null}
+      </div>
+      {actions}
+    </div>
+  );
+}
+
+function EmptyState({ children }) {
+  return <div className="katha-empty">{children}</div>;
 }
 
 export default function KathaStudio({ darkMode }) {
@@ -132,8 +957,10 @@ export default function KathaStudio({ darkMode }) {
   });
   const [job, setJob] = useState(null);
   const [selectedStoryId, setSelectedStoryId] = useState("");
+  const [selectedReelIndex, setSelectedReelIndex] = useState(1);
   const [storyDraft, setStoryDraft] = useState({ title: "", synopsis: "", storyText: "" });
   const [reelDrafts, setReelDrafts] = useState([]);
+  const [workspaceTab, setWorkspaceTab] = useState("research");
   const [voices, setVoices] = useState([]);
   const [voiceId, setVoiceId] = useState("");
   const [busy, setBusy] = useState("");
@@ -152,7 +979,7 @@ export default function KathaStudio({ darkMode }) {
         const data = await response.json();
         if (ignore) return;
         setVoices(data);
-        if (data[0]?.voice_id) {
+        if (data[0]?.voice_id !== undefined) {
           setVoiceId((current) => current || data[0].voice_id);
         }
       } catch {}
@@ -165,7 +992,9 @@ export default function KathaStudio({ darkMode }) {
 
   useEffect(() => {
     if (!job?.storyDossier) return;
-    const selected = job.storyDossier.shortlist?.find((story) => story.id === job.storyDossier.selectedStoryId) || job.storyDossier.selectedStory;
+    const selected =
+      job.storyDossier.shortlist?.find((story) => story.id === job.storyDossier.selectedStoryId) ||
+      job.storyDossier.selectedStory;
     if (!selected) return;
     setSelectedStoryId(selected.id);
     setStoryDraft({
@@ -180,11 +1009,75 @@ export default function KathaStudio({ darkMode }) {
     setReelDrafts(job.reels);
   }, [job?.reels]);
 
+  useEffect(() => {
+    if (!reelDrafts.length) {
+      setSelectedReelIndex(1);
+      return;
+    }
+    if (!reelDrafts.some((reel) => reel.index === selectedReelIndex)) {
+      setSelectedReelIndex(reelDrafts[0].index);
+    }
+  }, [reelDrafts, selectedReelIndex]);
+
+  useEffect(() => {
+    return () => {
+      revokeExportUrls(exportsState);
+    };
+  }, [exportsState]);
+
   const shortlistedStories = job?.storyDossier?.shortlist || [];
   const selectedStory = useMemo(
-    () => shortlistedStories.find((story) => story.id === selectedStoryId) || job?.storyDossier?.selectedStory || null,
+    () =>
+      shortlistedStories.find((story) => story.id === selectedStoryId) ||
+      job?.storyDossier?.selectedStory ||
+      null,
     [job, shortlistedStories, selectedStoryId]
   );
+  const selectedReel = useMemo(
+    () => reelDrafts.find((reel) => reel.index === selectedReelIndex) || reelDrafts[0] || null,
+    [reelDrafts, selectedReelIndex]
+  );
+
+  const currentStage = getStageIndex(job?.stage);
+  const primaryStoryScore = shortlistedStories[0]?.score || 0;
+  const readyAssetCount = job?.assets?.filter((item) => item.status === "ready").length || 0;
+  const readyExportCount = exportsState.filter((item) => item.status === "ready").length;
+  const canBuildBlueprint = busy === "" && Boolean(job?.id && selectedStoryId);
+  const canGenerateAssets = busy === "" && Boolean(job?.id && reelDrafts.length === 7);
+  const canRender = busy === "" && Boolean(job?.assets?.length);
+  const seriesProgress = reelDrafts.length ? Math.round((readyAssetCount / reelDrafts.length) * 100) : 0;
+  const exportProgress = renderProgress.total ? Math.round((renderProgress.done / renderProgress.total) * 100) : 0;
+
+  const agentStations = [
+    {
+      id: "a1",
+      name: "Agent 1",
+      title: "Research + Collect",
+      copy: "Curated source set ko score karke one primary story aur backup options nikaalta hai.",
+      status: busy === "research" ? "working" : job?.storyDossier ? "ready" : "idle",
+    },
+    {
+      id: "a2",
+      name: "Agent 2",
+      title: "Story Architect",
+      copy: "Selected source ko dadi-nani tone me seven connected reels me todta hai.",
+      status: busy === "blueprint" ? "working" : reelDrafts.length === 7 ? "ready" : selectedStory ? "blocked" : "idle",
+    },
+    {
+      id: "a3",
+      name: "Agent 3",
+      title: "Asset Generator",
+      copy: "Visuals, voiceover, music bed aur subtitle cues ko per-reel bundle me banata hai.",
+      status: busy === "assets" ? "working" : readyAssetCount > 0 ? "ready" : reelDrafts.length === 7 ? "blocked" : "idle",
+    },
+    {
+      id: "a4",
+      name: "Agent 4",
+      title: "Reel Editor",
+      copy: "FFmpeg pipeline se final vertical MP4 reels aur ZIP export assemble karta hai.",
+      status: busy === "render" ? "working" : readyExportCount > 0 ? "ready" : readyAssetCount > 0 ? "blocked" : "idle",
+    },
+  ];
 
   async function postJson(url, payload) {
     const response = await fetch(url, {
@@ -202,8 +1095,10 @@ export default function KathaStudio({ darkMode }) {
   const startResearch = async () => {
     setBusy("research");
     setError("");
+    revokeExportUrls(exportsState);
     setExportsState([]);
     setZipBlob(null);
+    setWorkspaceTab("research");
     try {
       const nextJob = await postJson("/api/katha/research", filters);
       setJob(nextJob);
@@ -225,6 +1120,8 @@ export default function KathaStudio({ darkMode }) {
         storyEdits: storyDraft,
       });
       setJob(nextJob);
+      setWorkspaceTab("scripts");
+      setSelectedReelIndex(1);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -234,7 +1131,15 @@ export default function KathaStudio({ darkMode }) {
 
   const updateReelField = (index, key, value) => {
     setReelDrafts((current) =>
-      current.map((reel) => (reel.index === index ? { ...reel, [key]: value, subtitleText: key === "narration" ? value : reel.subtitleText } : reel))
+      current.map((reel) =>
+        reel.index === index
+          ? {
+              ...reel,
+              [key]: value,
+              subtitleText: key === "narration" ? value : reel.subtitleText,
+            }
+          : reel
+      )
     );
   };
 
@@ -249,6 +1154,7 @@ export default function KathaStudio({ darkMode }) {
         voiceId,
       });
       setJob(nextJob);
+      setWorkspaceTab("assets");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -266,26 +1172,18 @@ export default function KathaStudio({ darkMode }) {
       const subtitleName = `${safeBase}.srt`;
       const outputName = `${safeBase}.mp4`;
 
-      try {
-        await ffmpeg.deleteFile(imageName);
-      } catch {}
-      try {
-        await ffmpeg.deleteFile(voiceName);
-      } catch {}
-      try {
-        await ffmpeg.deleteFile(musicName);
-      } catch {}
-      try {
-        await ffmpeg.deleteFile(subtitleName);
-      } catch {}
-      try {
-        await ffmpeg.deleteFile(outputName);
-      } catch {}
+      for (const name of [imageName, `${voiceName}.mp3`, `${voiceName}.wav`, musicName, subtitleName, outputName]) {
+        try {
+          await ffmpeg.deleteFile(name);
+        } catch {}
+      }
 
       const imageBytes = await imageUrlToPngBytes(manifestReel.imageUrl);
       const voiceResponse = await fetch(manifestReel.voiceoverUrl);
       const voiceArrayBuffer = await voiceResponse.arrayBuffer();
-      const voiceContentType = voiceResponse.headers.get("content-type") || (manifestReel.voiceoverUrl.includes("mpeg") ? "audio/mpeg" : "audio/wav");
+      const voiceContentType =
+        voiceResponse.headers.get("content-type") ||
+        (manifestReel.voiceoverUrl.includes("mpeg") ? "audio/mpeg" : "audio/wav");
       const voiceExt = voiceContentType.includes("mpeg") ? "mp3" : "wav";
       const voiceFileName = `${voiceName}.${voiceExt}`;
 
@@ -301,7 +1199,8 @@ export default function KathaStudio({ darkMode }) {
         "[a1][a2]amix=inputs=2:duration=first:dropout_transition=0[aout]",
       ];
 
-      const subtitleStyle = "FontName=Arial,FontSize=18,PrimaryColour=&H00F7F7F7,OutlineColour=&H00291509,BorderStyle=3,Outline=1,MarginV=54";
+      const subtitleStyle =
+        "FontName=Arial,FontSize=18,PrimaryColour=&H00F7F7F7,OutlineColour=&H00291509,BorderStyle=3,Outline=1,MarginV=54";
 
       try {
         await ffmpeg.exec([
@@ -383,17 +1282,22 @@ export default function KathaStudio({ darkMode }) {
     if (!job?.id) return;
     setBusy("render");
     setError("");
+    setWorkspaceTab("exports");
     setRenderProgress({ total: 7, done: 0, current: "Preparing render manifest" });
+    revokeExportUrls(exportsState);
     setExportsState([]);
     setZipBlob(null);
+
     try {
       const manifest = await postJson("/api/katha/render", { jobId: job.id });
       const collected = [];
+
       for (const manifestReel of manifest.reels) {
         setRenderProgress((current) => ({
           ...current,
           current: `Rendering reel ${manifestReel.index}`,
         }));
+
         try {
           const rendered = await renderSingleReel(manifestReel);
           collected.push(rendered);
@@ -407,6 +1311,7 @@ export default function KathaStudio({ darkMode }) {
             sizeBytes: 0,
           });
         }
+
         setRenderProgress((current) => ({
           ...current,
           done: current.done + 1,
@@ -472,462 +1377,657 @@ export default function KathaStudio({ darkMode }) {
     }
   };
 
-  const stageIndex = useMemo(() => {
-    if (!job) return 0;
-    switch (job.stage) {
-      case "pipeline-status":
-        return 2;
-      case "review-edit":
-        return 3;
-      case "asset-generation":
-        return 4;
-      case "export-download":
-        return 5;
-      default:
-        return 1;
-    }
-  }, [job]);
+  const workspaceBody = (() => {
+    if (workspaceTab === "research") {
+      return (
+        <div className="katha-grid">
+          <section className="katha-panel katha-section">
+            <SectionHeader
+              eyebrow="Research Deck"
+              title="Shortlisted story stack"
+              copy="Primary story aur backup options ko ek hi jagah compare karo, phir best oral arc choose karo."
+              actions={<StatusPill label={shortlistedStories.length ? `${shortlistedStories.length} stories` : "No stories yet"} tone={shortlistedStories.length ? "ok" : "idle"} />}
+            />
+            {shortlistedStories.length ? (
+              <div className="katha-story-grid">
+                {shortlistedStories.map((story, index) => {
+                  const active = story.id === selectedStoryId;
+                  return (
+                    <button
+                      key={story.id}
+                      type="button"
+                      className="katha-story-card"
+                      data-active={active}
+                      onClick={() => {
+                        setSelectedStoryId(story.id);
+                        setStoryDraft({
+                          title: story.title,
+                          synopsis: story.synopsis,
+                          storyText: story.storyText,
+                        });
+                      }}
+                    >
+                      <div className="katha-story-kicker">
+                        <div className="katha-story-title">{index === 0 ? "Primary pick" : `Backup ${index}`}</div>
+                        <StatusPill label={`Score ${story.score}`} tone={index === 0 ? "ok" : "idle"} />
+                      </div>
+                      <div style={{ fontWeight: 800, fontSize: 15 }}>{story.title}</div>
+                      <div className="katha-story-copy">{story.synopsis}</div>
+                      <div className="katha-chip-row">
+                        <span className="katha-chip">{story.region}</span>
+                        <span className="katha-chip">{story.theme}</span>
+                        <span className="katha-chip">{story.copyrightStatus}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyState>Source filters set karke Agent 1 ko run karo. Curated shortlist yahin populate hogi.</EmptyState>
+            )}
+          </section>
 
-  const visualThesis = "A candlelit folk-cinema dashboard that feels like a midnight kahani sitting rather than a generic media tool.";
-  const contentPlan = "Poster hero, source intake rail, shortlisted dossier, seven-part story table, cinematic asset wall, final export stack.";
-  const interactionThesis = "Slow glow in the hero, stage rail progression, and reel previews that shift from manuscript mode to finished media.";
-
-  const panelStyle = {
-    background: darkMode
-      ? "linear-gradient(180deg, rgba(28,17,13,0.92), rgba(9,8,8,0.94))"
-      : "linear-gradient(180deg, rgba(255,247,236,0.96), rgba(242,232,219,0.98))",
-    border: `1px solid ${darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.12)"}`,
-    borderRadius: 28,
-    boxShadow: darkMode ? "0 24px 80px rgba(0,0,0,0.38)" : "0 28px 90px rgba(125,79,34,0.18)",
-  };
-
-  return (
-    <div style={{ maxWidth: 1440, margin: "0 auto", padding: "26px 18px 88px", color: darkMode ? "#f7ebd1" : "#2c180f" }}>
-      <div
-        style={{
-          ...panelStyle,
-          overflow: "hidden",
-          position: "relative",
-          minHeight: 380,
-          padding: "34px 34px 30px",
-          backgroundImage: darkMode
-            ? "radial-gradient(circle at 15% 22%, rgba(240,197,142,0.18), transparent 28%), radial-gradient(circle at 80% 18%, rgba(151,59,46,0.22), transparent 34%), linear-gradient(135deg, #1b100c 0%, #4b2316 46%, #09090a 100%)"
-            : "radial-gradient(circle at 15% 22%, rgba(240,197,142,0.45), transparent 28%), radial-gradient(circle at 80% 18%, rgba(151,59,46,0.20), transparent 34%), linear-gradient(135deg, #fff4e6 0%, #e5c4a8 46%, #f4ede4 100%)",
-        }}
-      >
-        <div style={{ position: "absolute", right: -80, top: -40, width: 420, height: 420, borderRadius: "50%", background: "radial-gradient(circle, rgba(255,236,201,0.18), transparent 68%)" }} />
-        <div style={{ display: "grid", gridTemplateColumns: "1.3fr 0.9fr", gap: 26, position: "relative", zIndex: 1 }}>
-          <div style={{ display: "grid", gap: 18, alignContent: "start" }}>
-            <StatusPill label="Katha Studio / 4-Agent MVP" tone="warn" />
-            <div style={{ fontSize: 13, letterSpacing: "0.22em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.62)" : "rgba(77,40,16,0.72)" }}>
-              Story-to-reels engine for untapped Indian oral narratives
-            </div>
-            <h1 style={{ margin: 0, fontFamily: "Georgia, serif", fontSize: "clamp(44px, 6vw, 82px)", lineHeight: 0.96, letterSpacing: "-0.03em" }}>
-              Dadi-nani wali kahani,
-              <br />
-              <span style={{ color: darkMode ? "#f0c58e" : "#7d3f22" }}>7 cinematic reels me.</span>
-            </h1>
-            <p style={{ margin: 0, maxWidth: 760, fontSize: 18, lineHeight: 1.55, color: darkMode ? "rgba(247,235,209,0.84)" : "rgba(54,27,13,0.78)" }}>
-              Curated Indian folk sources se kahani uthao, 4-agent pipeline se usse research, script, media aur export tak le jao, aur final pack review-gated format me download karo.
-            </p>
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-              <StatusPill label={visualThesis} tone="idle" />
-              <StatusPill label={contentPlan} tone="idle" />
-              <StatusPill label={interactionThesis} tone="idle" />
-            </div>
-          </div>
-
-          <div
-            style={{
-              alignSelf: "stretch",
-              padding: 24,
-              borderRadius: 26,
-              background: darkMode ? "rgba(10,8,8,0.42)" : "rgba(255,250,244,0.66)",
-              border: `1px solid ${darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.10)"}`,
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 18,
-            }}
-          >
-            <StoryMetric label="Current Stage" value={`${stageIndex}/5`} />
-            <StoryMetric label="Reels" value={reelDrafts.length || 7} />
-            <StoryMetric label="Assets Ready" value={job?.assets?.filter((item) => item.status === "ready").length || 0} />
-            <StoryMetric label="Exports Ready" value={exportsState.filter((item) => item.status === "ready").length || 0} />
-            <div style={{ gridColumn: "1 / -1", display: "grid", gap: 10 }}>
-              {[
-                "1 Story intake",
-                "2 Pipeline status",
-                "3 Review and edit",
-                "4 Asset generation",
-                "5 Export download",
-              ].map((step, index) => {
-                const active = stageIndex >= index + 1;
-                return (
-                  <div key={step} style={{ display: "grid", gridTemplateColumns: "24px 1fr", gap: 12, alignItems: "center" }}>
-                    <div style={{ width: 24, height: 24, borderRadius: "50%", display: "grid", placeItems: "center", background: active ? "#f0c58e" : "rgba(255,255,255,0.08)", color: active ? "#1d110c" : "rgba(247,235,209,0.56)", fontSize: 11, fontWeight: 800 }}>{index + 1}</div>
-                    <div style={{ fontSize: 14, color: active ? (darkMode ? "#fff1da" : "#412014") : (darkMode ? "rgba(247,235,209,0.56)" : "rgba(65,32,20,0.58)") }}>{step}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {error && (
-        <div style={{ marginTop: 16, ...panelStyle, padding: "14px 18px", borderColor: "rgba(248,113,113,0.3)", color: darkMode ? "#fecaca" : "#991b1b" }}>
-          {error}
-        </div>
-      )}
-
-      <div style={{ display: "grid", gridTemplateColumns: "0.92fr 1.08fr", gap: 18, marginTop: 18 }}>
-        <section style={{ ...panelStyle, padding: 26, display: "grid", gap: 18, alignContent: "start" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>Story Intake</div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 34, marginTop: 6 }}>Curated source rail</div>
-            </div>
-            <StatusPill label={busy === "research" ? "Researching" : "Agent 1"} tone={busy === "research" ? "live" : "idle"} />
-          </div>
-
-          <label style={{ display: "grid", gap: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>Source set</span>
-            <select value={filters.sourceSet} onChange={(event) => setFilters((current) => ({ ...current, sourceSet: event.target.value }))} style={inputStyle(darkMode)}>
-              <option value="curated-public">Curated public-domain / cultural portals</option>
-              <option value="manual-library">Manual library</option>
-            </select>
-          </label>
-
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <label style={{ display: "grid", gap: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 700 }}>Region</span>
-              <select value={filters.region} onChange={(event) => setFilters((current) => ({ ...current, region: event.target.value }))} style={inputStyle(darkMode)}>
-                {REGIONS.map((region) => <option key={region} value={region}>{region}</option>)}
-              </select>
-            </label>
-            <label style={{ display: "grid", gap: 8 }}>
-              <span style={{ fontSize: 12, fontWeight: 700 }}>Theme</span>
-              <select value={filters.theme} onChange={(event) => setFilters((current) => ({ ...current, theme: event.target.value }))} style={inputStyle(darkMode)}>
-                {THEMES.map((theme) => <option key={theme} value={theme}>{theme}</option>)}
-              </select>
-            </label>
-          </div>
-
-          <label style={{ display: "grid", gap: 8 }}>
-            <span style={{ fontSize: 12, fontWeight: 700 }}>Age tone</span>
-            <select value={filters.ageTone} onChange={(event) => setFilters((current) => ({ ...current, ageTone: event.target.value }))} style={inputStyle(darkMode)}>
-              {AGE_TONES.map((tone) => <option key={tone} value={tone}>{tone}</option>)}
-            </select>
-          </label>
-
-          <button onClick={startResearch} disabled={busy !== ""} style={primaryButton(darkMode)}>
-            {busy === "research" ? "Agent 1 researching stories..." : "Start research"}
-          </button>
-
-          <div style={{ display: "grid", gap: 10 }}>
-            {shortlistedStories.map((story, index) => {
-              const active = story.id === selectedStoryId;
-              return (
-                <button
-                  key={story.id}
-                  onClick={() => {
-                    setSelectedStoryId(story.id);
-                    setStoryDraft({ title: story.title, synopsis: story.synopsis, storyText: story.storyText });
-                  }}
-                  style={{
-                    textAlign: "left",
-                    borderRadius: 22,
-                    border: `1px solid ${active ? "rgba(240,197,142,0.52)" : darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.12)"}`,
-                    background: active ? (darkMode ? "linear-gradient(180deg, rgba(77,35,22,0.82), rgba(20,10,9,0.9))" : "linear-gradient(180deg, rgba(248,227,197,0.92), rgba(255,247,238,0.98))") : "transparent",
-                    color: "inherit",
-                    padding: "16px 18px",
-                    cursor: "pointer",
-                    display: "grid",
-                    gap: 10,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                    <div style={{ fontFamily: "Georgia, serif", fontSize: 24 }}>{index === 0 ? "Primary" : `Backup ${index}`}</div>
-                    <StatusPill label={`Score ${story.score}`} tone={index === 0 ? "ok" : "idle"} />
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 700 }}>{story.title}</div>
-                  <div style={{ fontSize: 13, lineHeight: 1.55, color: darkMode ? "rgba(247,235,209,0.76)" : "rgba(65,32,20,0.78)" }}>{story.synopsis}</div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                    <StatusPill label={story.region} tone="idle" />
-                    <StatusPill label={story.theme} tone="idle" />
-                    <StatusPill label={story.copyrightStatus} tone="warn" />
-                  </div>
+          <section className="katha-panel katha-section">
+            <SectionHeader
+              eyebrow="Review Gate"
+              title="Editable story dossier"
+              copy="Selected source ko clean karo, summary tighten karo, aur phir Agent 2 se seven-reel blueprint nikaalo."
+              actions={
+                <button type="button" className="katha-button" onClick={buildBlueprint} disabled={!canBuildBlueprint}>
+                  {busy === "blueprint" ? "Writing blueprint..." : "Build 7-part script"}
                 </button>
-              );
-            })}
-          </div>
-        </section>
+              }
+            />
+            {selectedStory ? (
+              <div className="katha-story-form">
+                <div className="katha-story-two-col">
+                  <label className="katha-field">
+                    <span>Story title</span>
+                    <input
+                      className="katha-input"
+                      value={storyDraft.title}
+                      onChange={(event) => setStoryDraft((current) => ({ ...current, title: event.target.value }))}
+                    />
+                  </label>
+                  <div className="katha-note">
+                    <strong>Authenticity note</strong>
+                    <span>{selectedStory.authenticityNotes}</span>
+                  </div>
+                </div>
 
-        <section style={{ ...panelStyle, padding: 26, display: "grid", gap: 18 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
-            <div>
-              <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>Pipeline Status</div>
-              <div style={{ fontFamily: "Georgia, serif", fontSize: 34, marginTop: 6 }}>Research dossier</div>
-            </div>
-            <StatusPill label={job?.status || "Waiting"} tone={job ? "ok" : "idle"} />
-          </div>
-
-          {selectedStory ? (
-            <>
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 0.8fr", gap: 16 }}>
-                <label style={{ display: "grid", gap: 8 }}>
-                  <span style={{ fontSize: 12, fontWeight: 700 }}>Story title</span>
-                  <input value={storyDraft.title} onChange={(event) => setStoryDraft((current) => ({ ...current, title: event.target.value }))} style={inputStyle(darkMode)} />
+                <label className="katha-field">
+                  <span>Synopsis</span>
+                  <textarea
+                    className="katha-textarea"
+                    rows={4}
+                    value={storyDraft.synopsis}
+                    onChange={(event) => setStoryDraft((current) => ({ ...current, synopsis: event.target.value }))}
+                  />
                 </label>
-                <div style={{ ...miniPanel(darkMode), display: "grid", gap: 8 }}>
-                  <div style={{ fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>Authenticity</div>
-                  <div style={{ fontSize: 14, lineHeight: 1.55 }}>{selectedStory.authenticityNotes}</div>
+
+                <label className="katha-field">
+                  <span>Source narrative</span>
+                  <textarea
+                    className="katha-textarea"
+                    rows={8}
+                    value={storyDraft.storyText}
+                    onChange={(event) => setStoryDraft((current) => ({ ...current, storyText: event.target.value }))}
+                  />
+                </label>
+
+                <div className="katha-links">
+                  {selectedStory.sourceLinks?.map((link) => (
+                    <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className="katha-link-card">
+                      <div>
+                        <div style={{ fontWeight: 700 }}>{link.label}</div>
+                        <div className="katha-export-sub">{link.type}</div>
+                      </div>
+                      <StatusPill label="Source" tone="idle" />
+                    </a>
+                  ))}
                 </div>
               </div>
+            ) : (
+              <EmptyState>Shortlist me se koi story select karte hi editable dossier yahin khulega.</EmptyState>
+            )}
+          </section>
+        </div>
+      );
+    }
 
-              <label style={{ display: "grid", gap: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700 }}>Synopsis</span>
-                <textarea value={storyDraft.synopsis} onChange={(event) => setStoryDraft((current) => ({ ...current, synopsis: event.target.value }))} rows={4} style={textareaStyle(darkMode)} />
-              </label>
+    if (workspaceTab === "scripts") {
+      return (
+        <div className="katha-grid">
+          <section className="katha-panel katha-section">
+            <SectionHeader
+              eyebrow="Script Room"
+              title="Seven-part reel structure"
+              copy="Har reel ko hook, narration, visual prompt aur cliffhanger ke saath individually refine karo."
+              actions={
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                  <StatusPill label={job?.seriesBlueprint?.hook ? "Series hook ready" : "Waiting"} tone={job?.seriesBlueprint?.hook ? "ok" : "idle"} />
+                  <button type="button" className="katha-button" onClick={generateAssets} disabled={!canGenerateAssets}>
+                    {busy === "assets" ? "Generating assets..." : "Approve and generate assets"}
+                  </button>
+                </div>
+              }
+            />
+            {reelDrafts.length ? (
+              <div className="katha-reel-layout">
+                <div className="katha-note">
+                  <strong>Series overview</strong>
+                  <span>
+                    {job?.seriesBlueprint?.hook || "Hook pending."}
+                    {job?.seriesBlueprint?.emotionalProgression?.length
+                      ? ` Emotional flow: ${job.seriesBlueprint.emotionalProgression.join(" -> ")}.`
+                      : ""}
+                  </span>
+                </div>
 
-              <label style={{ display: "grid", gap: 8 }}>
-                <span style={{ fontSize: 12, fontWeight: 700 }}>Source narrative</span>
-                <textarea value={storyDraft.storyText} onChange={(event) => setStoryDraft((current) => ({ ...current, storyText: event.target.value }))} rows={7} style={textareaStyle(darkMode)} />
-              </label>
+                <div className="katha-reel-strip">
+                  {reelDrafts.map((reel) => (
+                    <button
+                      key={reel.index}
+                      type="button"
+                      className="katha-reel-tab"
+                      data-active={selectedReel?.index === reel.index}
+                      onClick={() => setSelectedReelIndex(reel.index)}
+                    >
+                      <strong>Reel {reel.index}</strong>
+                      <span>{reel.title}</span>
+                    </button>
+                  ))}
+                </div>
 
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                {selectedStory.sourceLinks?.map((link) => (
-                  <a key={link.url} href={link.url} target="_blank" rel="noreferrer" style={ghostLink(darkMode)}>
-                    {link.label}
-                  </a>
-                ))}
+                {selectedReel ? (
+                  <div className="katha-reel-editor">
+                    <div className="katha-editor-col">
+                      <div className="katha-editor-meta">
+                        <StatusPill label={selectedReel.assetStatus || "pending"} tone={selectedReel.assetStatus === "ready" ? "ok" : "idle"} />
+                        <StatusPill label={selectedReel.renderStatus || "pending"} tone={selectedReel.renderStatus === "ready" ? "ok" : "idle"} />
+                      </div>
+                      <label className="katha-field">
+                        <span>Reel title</span>
+                        <input
+                          className="katha-input"
+                          value={selectedReel.title}
+                          onChange={(event) => updateReelField(selectedReel.index, "title", event.target.value)}
+                        />
+                      </label>
+                      <label className="katha-field">
+                        <span>Hook</span>
+                        <textarea
+                          className="katha-textarea"
+                          rows={3}
+                          value={selectedReel.hook}
+                          onChange={(event) => updateReelField(selectedReel.index, "hook", event.target.value)}
+                        />
+                      </label>
+                      <label className="katha-field">
+                        <span>Narration</span>
+                        <textarea
+                          className="katha-textarea"
+                          rows={7}
+                          value={selectedReel.narration}
+                          onChange={(event) => updateReelField(selectedReel.index, "narration", event.target.value)}
+                        />
+                      </label>
+                      <label className="katha-field">
+                        <span>On-screen text</span>
+                        <textarea
+                          className="katha-textarea"
+                          rows={4}
+                          value={selectedReel.onscreenText}
+                          onChange={(event) => updateReelField(selectedReel.index, "onscreenText", event.target.value)}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="katha-editor-col">
+                      <label className="katha-field">
+                        <span>Image prompt</span>
+                        <textarea
+                          className="katha-textarea"
+                          rows={6}
+                          value={selectedReel.imagePrompt}
+                          onChange={(event) => updateReelField(selectedReel.index, "imagePrompt", event.target.value)}
+                        />
+                      </label>
+                      <label className="katha-field">
+                        <span>Music mood</span>
+                        <textarea
+                          className="katha-textarea"
+                          rows={4}
+                          value={selectedReel.musicPrompt}
+                          onChange={(event) => updateReelField(selectedReel.index, "musicPrompt", event.target.value)}
+                        />
+                      </label>
+                      <label className="katha-field">
+                        <span>Cliffhanger / transition</span>
+                        <textarea
+                          className="katha-textarea"
+                          rows={4}
+                          value={selectedReel.cliffhanger}
+                          onChange={(event) => updateReelField(selectedReel.index, "cliffhanger", event.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
               </div>
+            ) : (
+              <EmptyState>Agent 2 se blueprint generate hote hi yahan structured reel editor khulega.</EmptyState>
+            )}
+          </section>
+        </div>
+      );
+    }
 
-              <button onClick={buildBlueprint} disabled={busy !== ""} style={primaryButton(darkMode)}>
-                {busy === "blueprint" ? "Agent 2 writing 7-part blueprint..." : "Build 7-part script pack"}
-              </button>
-            </>
-          ) : (
-            <div style={{ ...miniPanel(darkMode), minHeight: 240, display: "grid", placeItems: "center", textAlign: "center", color: darkMode ? "rgba(247,235,209,0.58)" : "rgba(65,32,20,0.58)" }}>
-              Research start karte hi shortlisted stories yahan dikhenge.
+    if (workspaceTab === "assets") {
+      return (
+        <div className="katha-grid">
+          <section className="katha-panel katha-section">
+            <SectionHeader
+              eyebrow="Asset Wall"
+              title="Per-reel media bundles"
+              copy="Visual, voiceover aur music ko single review wall me dekho. Approved hone par Agent 4 render chalao."
+              actions={
+                <button type="button" className="katha-button" onClick={renderAll} disabled={!canRender}>
+                  {busy === "render" ? "Rendering reel pack..." : "Render 7 reels"}
+                </button>
+              }
+            />
+            {job?.assets?.length ? (
+              <div className="katha-preview-grid">
+                {job.assets.map((asset) => {
+                  const reel = reelDrafts.find((item) => item.index === asset.reelIndex);
+                  return (
+                    <div key={asset.reelIndex} className="katha-preview-card">
+                      <div className="katha-preview-visual">
+                        <img src={asset.imageUrl} alt={reel?.title || `Reel ${asset.reelIndex}`} />
+                        <div className="katha-preview-overlay">{reel?.onscreenText}</div>
+                      </div>
+                      <div className="katha-preview-body">
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
+                          <div style={{ fontWeight: 800 }}>{reel?.title || `Reel ${asset.reelIndex}`}</div>
+                          <StatusPill label={`${Math.round(asset.durationSec)} sec`} tone="idle" />
+                        </div>
+                        <div className="katha-audio-stack">
+                          <audio controls src={asset.voiceoverUrl} />
+                          <audio controls src={asset.musicUrl} />
+                        </div>
+                        <div className="katha-export-sub">Subtitle timing narration duration ke saath synced hai.</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyState>Agent 3 run karne ke baad yahin preview wall me visuals aur audio bundles aayenge.</EmptyState>
+            )}
+          </section>
+        </div>
+      );
+    }
+
+    return (
+      <div className="katha-grid">
+        <section className="katha-panel katha-section">
+          <SectionHeader
+            eyebrow="Export Deck"
+            title="Render queue and downloads"
+            copy="Final MP4 reels, ZIP bundle, aur per-reel render state ko ek jagah se monitor karo."
+            actions={
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                {busy === "render" ? (
+                  <StatusPill label={`${renderProgress.done}/${renderProgress.total} ${renderProgress.current}`} tone="live" />
+                ) : null}
+                {zipBlob ? (
+                  <button type="button" className="katha-button" onClick={() => downloadBlob(zipBlob, zipName)}>
+                    Download ZIP
+                  </button>
+                ) : null}
+              </div>
+            }
+          />
+          {exportsState.length ? (
+            <div className="katha-export-list">
+              {exportsState.map((item) => (
+                <div key={item.reelIndex} className="katha-export-row">
+                  <div className="katha-export-meta">
+                    <div className="katha-export-title">{item.title || `Reel ${item.reelIndex}`}</div>
+                    <div className="katha-export-sub">
+                      {item.fileName} · {formatBytes(item.sizeBytes)}
+                    </div>
+                  </div>
+                  <StatusPill label={item.status} tone={item.status === "ready" ? "ok" : "error"} />
+                  {item.status === "ready" && item.blob ? (
+                    <button type="button" className="katha-button-secondary" onClick={() => downloadBlob(item.blob, item.fileName)}>
+                      Download
+                    </button>
+                  ) : (
+                    <div className="katha-export-sub">{item.error || "Render failed"}</div>
+                  )}
+                </div>
+              ))}
             </div>
+          ) : (
+            <EmptyState>Render trigger karte hi export queue aur download controls yahan aayenge.</EmptyState>
           )}
         </section>
       </div>
+    );
+  })();
 
-      <section style={{ ...panelStyle, padding: 26, display: "grid", gap: 18, marginTop: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>Review Gate</div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: 34, marginTop: 6 }}>7 connected reels</div>
-          </div>
-          <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-            <StatusPill label={reelDrafts.length === 7 ? "Blueprint ready" : "Pending blueprint"} tone={reelDrafts.length === 7 ? "ok" : "idle"} />
-            <select value={voiceId} onChange={(event) => setVoiceId(event.target.value)} style={{ ...inputStyle(darkMode), minWidth: 220 }}>
-              <option value="">Default warm voice</option>
-              {voices.map((voice) => (
-                <option key={voice.voice_id} value={voice.voice_id}>
-                  {voice.name}
-                </option>
-              ))}
-            </select>
-            <button onClick={generateAssets} disabled={busy !== "" || reelDrafts.length !== 7} style={primaryButton(darkMode)}>
-              {busy === "assets" ? "Agent 3 generating assets..." : "Approve and generate assets"}
-            </button>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gap: 16 }}>
-          {reelDrafts.map((reel) => (
-            <div key={reel.index} style={{ ...miniPanel(darkMode), padding: 18, display: "grid", gridTemplateColumns: "0.32fr 0.68fr", gap: 18 }}>
-              <div style={{ display: "grid", gap: 10, alignContent: "start" }}>
-                <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>
-                  Reel {reel.index}
-                </div>
-                <textarea value={reel.onscreenText} onChange={(event) => updateReelField(reel.index, "onscreenText", event.target.value)} rows={6} style={textareaStyle(darkMode)} />
-                <textarea value={reel.hook} onChange={(event) => updateReelField(reel.index, "hook", event.target.value)} rows={3} style={textareaStyle(darkMode)} />
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <StatusPill label={reel.assetStatus || "pending"} tone={reel.assetStatus === "ready" ? "ok" : "idle"} />
-                  <StatusPill label={reel.renderStatus || "pending"} tone={reel.renderStatus === "ready" ? "ok" : "idle"} />
-                </div>
-              </div>
-              <div style={{ display: "grid", gap: 12 }}>
-                <input value={reel.title} onChange={(event) => updateReelField(reel.index, "title", event.target.value)} style={inputStyle(darkMode)} />
-                <textarea value={reel.narration} onChange={(event) => updateReelField(reel.index, "narration", event.target.value)} rows={5} style={textareaStyle(darkMode)} />
-                <textarea value={reel.imagePrompt} onChange={(event) => updateReelField(reel.index, "imagePrompt", event.target.value)} rows={3} style={textareaStyle(darkMode)} />
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                  <textarea value={reel.musicPrompt} onChange={(event) => updateReelField(reel.index, "musicPrompt", event.target.value)} rows={3} style={textareaStyle(darkMode)} />
-                  <textarea value={reel.cliffhanger} onChange={(event) => updateReelField(reel.index, "cliffhanger", event.target.value)} rows={3} style={textareaStyle(darkMode)} />
-                </div>
+  return (
+    <div
+      className="katha-shell"
+      style={{
+        "--surface": darkMode ? "#070606" : "#f4ecdf",
+        "--surface-deep": darkMode ? "#050404" : "#efe5d8",
+        "--hero-start": darkMode ? "#1a110d" : "#fff3e3",
+        "--hero-mid": darkMode ? "#4a2415" : "#ebcdb1",
+        "--hero-end": darkMode ? "#090809" : "#f8f1e8",
+        "--panel": darkMode
+          ? "linear-gradient(180deg, rgba(24,16,13,0.92), rgba(8,8,8,0.96))"
+          : "linear-gradient(180deg, rgba(255,249,241,0.96), rgba(244,235,224,0.98))",
+        "--panel-soft": darkMode ? "rgba(8,7,7,0.48)" : "rgba(255,252,248,0.68)",
+        "--inner": darkMode ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.68)",
+        "--input": darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.82)",
+        "--text": darkMode ? "#f7ebd1" : "#2f1a12",
+        "--text-soft": darkMode ? "rgba(247,235,209,0.84)" : "rgba(47,26,18,0.84)",
+        "--muted": darkMode ? "rgba(247,235,209,0.58)" : "rgba(72,39,18,0.62)",
+        "--muted-strong": darkMode ? "rgba(247,235,209,0.72)" : "rgba(72,39,18,0.74)",
+        "--line": darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.12)",
+        "--line-soft": darkMode ? "rgba(255,236,201,0.07)" : "rgba(99,58,24,0.10)",
+        "--accent": darkMode ? "#f0c58e" : "#7d3f22",
+        "--accent-deep": darkMode ? "#c86d3b" : "#b65e31",
+        "--accent-soft": darkMode ? "rgba(240,197,142,0.12)" : "rgba(125,63,34,0.08)",
+        "--accent-line": darkMode ? "rgba(240,197,142,0.30)" : "rgba(125,63,34,0.18)",
+        "--accent-contrast": darkMode ? "#1e1009" : "#fff8f0",
+        "--glow-soft": darkMode ? "rgba(240,197,142,0.14)" : "rgba(240,197,142,0.34)",
+        "--glow-hot": darkMode ? "rgba(197,97,57,0.16)" : "rgba(182,94,49,0.18)",
+        "--shadow": darkMode ? "0 24px 80px rgba(0,0,0,0.38)" : "0 24px 70px rgba(125,79,34,0.14)",
+      }}
+    >
+      <style>{KATHA_CSS}</style>
+      <div className="katha-frame">
+        <section className="katha-panel katha-hero">
+          <div className="katha-hero-grid">
+            <div style={{ display: "grid", gap: 18 }}>
+              <StatusPill label="Katha Studio / 4-agent workflow" tone="warn" />
+              <div className="katha-eyebrow">Untapped Indian regional stories, structured for oral reels</div>
+              <h1 className="katha-display">
+                Kahani ko research se
+                <br />
+                <span>reel pack</span> tak clearly chalao.
+              </h1>
+              <p className="katha-hero-copy">
+                Ab UI ek clean production desk ki tarah structured hai: left rail me agent stations, center me active workspace,
+                aur right side me story + output overview. Review gate intact rahega, clutter nahi.
+              </p>
+              <div className="katha-chip-row">
+                <span className="katha-chip">Curated public-domain intake</span>
+                <span className="katha-chip">Hindi-belt oral narration</span>
+                <span className="katha-chip">7 connected reels</span>
               </div>
             </div>
-          ))}
-        </div>
-      </section>
 
-      <section style={{ ...panelStyle, padding: 26, display: "grid", gap: 18, marginTop: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>Asset Generation</div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: 34, marginTop: 6 }}>Cinematic preview wall</div>
+            <div className="katha-hero-metrics">
+              <StatCard label="Pipeline Stage" value={`${currentStage}/5`} sub={PIPELINE_STAGES[currentStage - 1]?.title || "Story Intake"} />
+              <StatCard label="Primary Story Score" value={primaryStoryScore || "--"} sub={selectedStory ? selectedStory.title : "No story selected"} />
+              <StatCard label="Assets Ready" value={readyAssetCount} sub={reelDrafts.length ? `${reelDrafts.length} total reels` : "Waiting for Agent 3"} />
+              <StatCard label="Exports Ready" value={readyExportCount} sub={zipBlob ? "ZIP bundle prepared" : "Waiting for Agent 4"} />
+            </div>
           </div>
-          <button onClick={renderAll} disabled={busy !== "" || !job?.assets?.length} style={primaryButton(darkMode)}>
-            {busy === "render" ? "Agent 4 rendering reel pack..." : "Render 7 reels"}
-          </button>
-        </div>
+        </section>
 
-        {job?.assets?.length ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 16 }}>
-            {job.assets.map((asset) => {
-              const reel = reelDrafts.find((item) => item.index === asset.reelIndex);
-              return (
-                <div key={asset.reelIndex} style={{ ...miniPanel(darkMode), overflow: "hidden", padding: 0 }}>
-                  <div style={{ position: "relative", aspectRatio: "9 / 16", background: "#120d0b" }}>
-                    <img src={asset.imageUrl} alt={reel?.title || `Reel ${asset.reelIndex}`} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                    <div style={{ position: "absolute", inset: "auto 14px 14px 14px", padding: "10px 12px", borderRadius: 14, background: "rgba(9,8,8,0.54)", backdropFilter: "blur(8px)", fontSize: 13, lineHeight: 1.45 }}>
-                      {reel?.onscreenText}
+        {error ? <div className="katha-alert" style={{ marginTop: 18 }}>{error}</div> : null}
+
+        <div className="katha-layout">
+          <aside className="katha-rail">
+            <section className="katha-panel katha-section">
+              <SectionHeader
+                eyebrow="Pipeline rail"
+                title="Stage map"
+                copy="Har stage ka clear job aur completion state."
+              />
+              <div className="katha-stage-list">
+                {PIPELINE_STAGES.map((stage, index) => (
+                  <div
+                    key={stage.id}
+                    className="katha-stage-item"
+                    data-active={currentStage === index + 1}
+                    data-complete={currentStage > index + 1}
+                  >
+                    <div className="katha-stage-number">{stage.number}</div>
+                    <div>
+                      <div className="katha-stage-title">{stage.title}</div>
+                      <div className="katha-stage-copy">{stage.blurb}</div>
                     </div>
                   </div>
-                  <div style={{ padding: 16, display: "grid", gap: 12 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                      <div style={{ fontWeight: 700 }}>{reel?.title || `Reel ${asset.reelIndex}`}</div>
-                      <StatusPill label={`${Math.round(asset.durationSec)} sec`} tone="idle" />
-                    </div>
-                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <audio controls src={asset.voiceoverUrl} style={{ width: "100%" }} />
-                      <audio controls src={asset.musicUrl} style={{ width: "100%" }} />
-                    </div>
-                    <div style={{ fontSize: 12, lineHeight: 1.5, color: darkMode ? "rgba(247,235,209,0.72)" : "rgba(65,32,20,0.72)" }}>
-                      Subtitle cues ready and tied to narration duration.
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : (
-          <div style={{ ...miniPanel(darkMode), minHeight: 220, display: "grid", placeItems: "center", textAlign: "center", color: darkMode ? "rgba(247,235,209,0.58)" : "rgba(65,32,20,0.58)" }}>
-            Asset generation ke baad yahan visual, voiceover aur music previews aayenge.
-          </div>
-        )}
-      </section>
-
-      <section style={{ ...panelStyle, padding: 26, display: "grid", gap: 18, marginTop: 18 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: darkMode ? "rgba(247,235,209,0.56)" : "rgba(87,48,20,0.58)" }}>Export Download</div>
-            <div style={{ fontFamily: "Georgia, serif", fontSize: 34, marginTop: 6 }}>Ready-to-download pack</div>
-          </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            {busy === "render" && <StatusPill label={`${renderProgress.done}/${renderProgress.total} ${renderProgress.current}`} tone="live" />}
-            {zipBlob && (
-              <button onClick={() => downloadBlob(zipBlob, zipName)} style={primaryButton(darkMode)}>
-                Download ZIP
-              </button>
-            )}
-          </div>
-        </div>
-
-        {exportsState.length ? (
-          <div style={{ display: "grid", gap: 12 }}>
-            {exportsState.map((item) => (
-              <div key={item.reelIndex} style={{ ...miniPanel(darkMode), padding: "16px 18px", display: "grid", gridTemplateColumns: "1fr auto auto", gap: 12, alignItems: "center" }}>
-                <div>
-                  <div style={{ fontWeight: 700 }}>{item.title || `Reel ${item.reelIndex}`}</div>
-                  <div style={{ fontSize: 13, color: darkMode ? "rgba(247,235,209,0.64)" : "rgba(65,32,20,0.64)" }}>
-                    {item.fileName} · {formatBytes(item.sizeBytes)}
-                  </div>
-                </div>
-                <StatusPill label={item.status} tone={item.status === "ready" ? "ok" : "error"} />
-                {item.status === "ready" && item.blob ? (
-                  <button onClick={() => downloadBlob(item.blob, item.fileName)} style={secondaryButton(darkMode)}>
-                    Download
-                  </button>
-                ) : (
-                  <div style={{ fontSize: 12, color: "#fca5a5" }}>{item.error || "Render failed"}</div>
-                )}
+                ))}
               </div>
-            ))}
-          </div>
-        ) : (
-          <div style={{ ...miniPanel(darkMode), minHeight: 180, display: "grid", placeItems: "center", textAlign: "center", color: darkMode ? "rgba(247,235,209,0.58)" : "rgba(65,32,20,0.58)" }}>
-            Final render ke baad 7 MP4 reels aur ZIP bundle yahan se download honge.
-          </div>
-        )}
-      </section>
+            </section>
+
+            <section className="katha-panel katha-section">
+              <SectionHeader
+                eyebrow="Studio controls"
+                title="Story intake"
+                copy="Source filters ko left rail me rakha gaya hai, taaki workspace clutter-free rahe."
+              />
+              <div className="katha-control-grid">
+                <label className="katha-field">
+                  <span>Source set</span>
+                  <select
+                    className="katha-select"
+                    value={filters.sourceSet}
+                    onChange={(event) => setFilters((current) => ({ ...current, sourceSet: event.target.value }))}
+                  >
+                    <option value="curated-public">Curated public-domain / cultural portals</option>
+                    <option value="manual-library">Manual library</option>
+                  </select>
+                </label>
+                <label className="katha-field">
+                  <span>Region</span>
+                  <select
+                    className="katha-select"
+                    value={filters.region}
+                    onChange={(event) => setFilters((current) => ({ ...current, region: event.target.value }))}
+                  >
+                    {REGIONS.map((region) => (
+                      <option key={region} value={region}>
+                        {region}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="katha-field">
+                  <span>Theme</span>
+                  <select
+                    className="katha-select"
+                    value={filters.theme}
+                    onChange={(event) => setFilters((current) => ({ ...current, theme: event.target.value }))}
+                  >
+                    {THEMES.map((theme) => (
+                      <option key={theme} value={theme}>
+                        {theme}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="katha-field">
+                  <span>Age tone</span>
+                  <select
+                    className="katha-select"
+                    value={filters.ageTone}
+                    onChange={(event) => setFilters((current) => ({ ...current, ageTone: event.target.value }))}
+                  >
+                    {AGE_TONES.map((tone) => (
+                      <option key={tone} value={tone}>
+                        {tone}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button type="button" className="katha-button" onClick={startResearch} disabled={busy !== ""}>
+                  {busy === "research" ? "Researching..." : "Start research"}
+                </button>
+              </div>
+            </section>
+
+            <section className="katha-panel katha-section">
+              <SectionHeader
+                eyebrow="AI agent stations"
+                title="Operational agents"
+                copy="Each agent ka dedicated place aur next action yahin se visible hai."
+              />
+              <div className="katha-agent-list">
+                {agentStations.map((agent) => (
+                  <div key={agent.id} className="katha-agent-item">
+                    <div className="katha-agent-top">
+                      <div>
+                        <div className="katha-eyebrow">{agent.name}</div>
+                        <div className="katha-agent-name">{agent.title}</div>
+                      </div>
+                      <StatusPill label={agent.status} tone={getAgentTone(agent.status)} />
+                    </div>
+                    <div className="katha-agent-copy">{agent.copy}</div>
+
+                    {agent.id === "a3" ? (
+                      <label className="katha-field">
+                        <span>Voice profile</span>
+                        <select className="katha-select" value={voiceId} onChange={(event) => setVoiceId(event.target.value)}>
+                          {voices.map((voice) => (
+                            <option key={voice.voice_id || "default"} value={voice.voice_id}>
+                              {voice.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ) : null}
+
+                    {agent.id === "a1" ? (
+                      <button type="button" className="katha-button-secondary" onClick={startResearch} disabled={busy !== ""}>
+                        Run Agent 1
+                      </button>
+                    ) : null}
+                    {agent.id === "a2" ? (
+                      <button type="button" className="katha-button-secondary" onClick={buildBlueprint} disabled={!canBuildBlueprint}>
+                        Run Agent 2
+                      </button>
+                    ) : null}
+                    {agent.id === "a3" ? (
+                      <button type="button" className="katha-button-secondary" onClick={generateAssets} disabled={!canGenerateAssets}>
+                        Run Agent 3
+                      </button>
+                    ) : null}
+                    {agent.id === "a4" ? (
+                      <button type="button" className="katha-button-secondary" onClick={renderAll} disabled={!canRender}>
+                        Run Agent 4
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </section>
+          </aside>
+
+          <main className="katha-main">
+            <section className="katha-panel katha-section">
+              <SectionHeader
+                eyebrow="Workspace"
+                title="Active production desk"
+                copy="Main canvas ab sirf current work surface dikhata hai: research, script, assets, ya exports."
+                actions={
+                  <div className="katha-tabs">
+                    {WORKSPACE_TABS.map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        className="katha-tab"
+                        data-active={workspaceTab === tab.id}
+                        onClick={() => setWorkspaceTab(tab.id)}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+                }
+              />
+              {workspaceBody}
+            </section>
+          </main>
+
+          <aside className="katha-overview">
+            <section className="katha-panel katha-overview-card">
+              <SectionHeader
+                eyebrow="Story overview"
+                title={selectedStory ? selectedStory.title : "No story selected"}
+                copy={selectedStory ? selectedStory.synopsis : "Agent 1 shortlist ke baad yahan selected story ka quick overview aayega."}
+                actions={<StatusPill label={selectedStory ? selectedStory.region : "Waiting"} tone={selectedStory ? "idle" : "warn"} />}
+              />
+              {selectedStory ? (
+                <>
+                  <div className="katha-chip-row">
+                    <span className="katha-chip">{selectedStory.theme}</span>
+                    <span className="katha-chip">{selectedStory.ageTone}</span>
+                    <span className="katha-chip">{selectedStory.copyrightStatus}</span>
+                  </div>
+                  <div className="katha-overview-copy">{selectedStory.authenticityNotes}</div>
+                </>
+              ) : null}
+            </section>
+
+            <section className="katha-panel katha-overview-card">
+              <SectionHeader
+                eyebrow="Series monitor"
+                title="Review gate status"
+                copy="Story approve hone ke baad hi assets aur final render aage badhenge."
+              />
+              <div className="katha-grid">
+                <div className="katha-note">
+                  <strong>Blueprint hook</strong>
+                  <span>{job?.seriesBlueprint?.hook || "Series hook pending."}</span>
+                </div>
+                <div className="katha-note">
+                  <strong>Asset completion</strong>
+                  <span>{readyAssetCount}/{reelDrafts.length || 7} reels with media bundles.</span>
+                </div>
+                <div className="katha-progress">
+                  <div className="katha-progress-bar" style={{ width: `${seriesProgress}%` }} />
+                </div>
+              </div>
+            </section>
+
+            <section className="katha-panel katha-overview-card">
+              <SectionHeader
+                eyebrow="Output health"
+                title="Render overview"
+                copy="Agent 4 ki live progress aur export readiness yahin pin rahegi."
+              />
+              <div className="katha-grid">
+                <div className="katha-note">
+                  <strong>Current run</strong>
+                  <span>{busy === "render" ? renderProgress.current || "Rendering..." : readyExportCount ? "Rendered exports available." : "Render not started yet."}</span>
+                </div>
+                <div className="katha-progress">
+                  <div className="katha-progress-bar" style={{ width: `${exportProgress}%` }} />
+                </div>
+                <div className="katha-chip-row">
+                  <span className="katha-chip">{readyExportCount} ready reels</span>
+                  <span className="katha-chip">{zipBlob ? "ZIP prepared" : "ZIP pending"}</span>
+                </div>
+                {zipBlob ? (
+                  <button type="button" className="katha-button" onClick={() => downloadBlob(zipBlob, zipName)}>
+                    Download ZIP
+                  </button>
+                ) : null}
+              </div>
+            </section>
+          </aside>
+        </div>
+      </div>
     </div>
   );
-}
-
-function inputStyle(darkMode) {
-  return {
-    width: "100%",
-    padding: "14px 15px",
-    borderRadius: 18,
-    border: `1px solid ${darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.12)"}`,
-    background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.74)",
-    color: darkMode ? "#fff3dc" : "#2c180f",
-    fontSize: 14,
-    outline: "none",
-    boxSizing: "border-box",
-  };
-}
-
-function textareaStyle(darkMode) {
-  return {
-    ...inputStyle(darkMode),
-    resize: "vertical",
-    lineHeight: 1.55,
-    fontFamily: "inherit",
-  };
-}
-
-function primaryButton(darkMode) {
-  return {
-    border: "none",
-    borderRadius: 999,
-    padding: "14px 22px",
-    background: darkMode ? "linear-gradient(135deg, #f0c58e, #c86d3b)" : "linear-gradient(135deg, #7d3f22, #b65e31)",
-    color: darkMode ? "#1e1009" : "#fff8f0",
-    fontWeight: 800,
-    fontSize: 13,
-    cursor: "pointer",
-    letterSpacing: "0.04em",
-  };
-}
-
-function secondaryButton(darkMode) {
-  return {
-    border: `1px solid ${darkMode ? "rgba(255,236,201,0.16)" : "rgba(99,58,24,0.18)"}`,
-    borderRadius: 999,
-    padding: "11px 18px",
-    background: "transparent",
-    color: darkMode ? "#fff3dc" : "#2c180f",
-    fontWeight: 700,
-    fontSize: 13,
-    cursor: "pointer",
-  };
-}
-
-function ghostLink(darkMode) {
-  return {
-    display: "inline-flex",
-    alignItems: "center",
-    padding: "10px 14px",
-    borderRadius: 999,
-    background: darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.76)",
-    border: `1px solid ${darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.12)"}`,
-    color: darkMode ? "#fff3dc" : "#2c180f",
-    textDecoration: "none",
-    fontSize: 13,
-    fontWeight: 600,
-  };
-}
-
-function miniPanel(darkMode) {
-  return {
-    borderRadius: 24,
-    border: `1px solid ${darkMode ? "rgba(255,236,201,0.08)" : "rgba(99,58,24,0.12)"}`,
-    background: darkMode ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.62)",
-  };
 }
