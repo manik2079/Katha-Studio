@@ -11,10 +11,11 @@ export default async function handler(req, res) {
   if (!ensureMethod(req, res, "POST")) return;
 
   const jobId = normalizeText(req.body?.jobId);
+  const requestJob = req.body?.job && typeof req.body.job === "object" ? req.body.job : null;
   const selectedStoryId = normalizeText(req.body?.selectedStoryId);
   const storyEdits = req.body?.storyEdits || {};
 
-  const job = getJob(jobId);
+  const job = getJob(jobId) || requestJob;
   if (!job) {
     sendJson(res, 404, { error: "Job not found" });
     return;
@@ -58,7 +59,7 @@ export default async function handler(req, res) {
     emotionalBeat: normalizeText(reel.emotionalBeat || ""),
   }));
 
-  const updated = updateJob(job.id, {
+  const nextPatch = {
     status: "blueprint-complete",
     stage: "review-edit",
     storyDossier: {
@@ -72,7 +73,15 @@ export default async function handler(req, res) {
       cliffhangerStyle: normalizeText(blueprintPayload.cliffhangerStyle || "soft-grandmotherly"),
     },
     reels: normalizedReels,
-  });
+  };
+
+  const updated =
+    updateJob(job.id, nextPatch) ||
+    {
+      ...job,
+      ...nextPatch,
+      updatedAt: new Date().toISOString(),
+    };
 
   sendJson(res, 200, updated);
 }

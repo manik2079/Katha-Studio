@@ -14,10 +14,11 @@ export default async function handler(req, res) {
   if (!ensureMethod(req, res, "POST")) return;
 
   const jobId = normalizeText(req.body?.jobId);
+  const requestJob = req.body?.job && typeof req.body.job === "object" ? req.body.job : null;
   const approvedReels = Array.isArray(req.body?.reels) ? req.body.reels : null;
   const voiceId = normalizeText(req.body?.voiceId);
 
-  const job = getJob(jobId);
+  const job = getJob(jobId) || requestJob;
   if (!job) {
     sendJson(res, 404, { error: "Job not found" });
     return;
@@ -69,7 +70,7 @@ export default async function handler(req, res) {
     })
   );
 
-  const updated = updateJob(job.id, {
+  const nextPatch = {
     status: "assets-ready",
     stage: "asset-generation",
     reels: reels.map((reel) => ({ ...reel, assetStatus: "ready" })),
@@ -78,7 +79,15 @@ export default async function handler(req, res) {
       ...job.metadata,
       voiceId: voiceId || null,
     },
-  });
+  };
+
+  const updated =
+    updateJob(job.id, nextPatch) ||
+    {
+      ...job,
+      ...nextPatch,
+      updatedAt: new Date().toISOString(),
+    };
 
   sendJson(res, 200, updated);
 }

@@ -5,8 +5,9 @@ export default async function handler(req, res) {
   if (!ensureMethod(req, res, "POST")) return;
 
   const jobId = normalizeText(req.body?.jobId);
+  const requestJob = req.body?.job && typeof req.body.job === "object" ? req.body.job : null;
   const exportsPayload = Array.isArray(req.body?.exports) ? req.body.exports : null;
-  const job = getJob(jobId);
+  const job = getJob(jobId) || requestJob;
 
   if (!job) {
     sendJson(res, 404, { error: "Job not found" });
@@ -40,17 +41,19 @@ export default async function handler(req, res) {
       }),
     };
 
-    updateJob(job.id, {
+    const nextPatch = {
       status: "render-manifest-ready",
       stage: "export-download",
       reels: job.reels.map((reel) => ({ ...reel, renderStatus: "queued" })),
-    });
+    };
+
+    updateJob(job.id, nextPatch);
 
     sendJson(res, 200, manifest);
     return;
   }
 
-  const updated = updateJob(job.id, {
+  const nextPatch = {
     status: "render-complete",
     stage: "export-download",
     exports: exportsPayload,
@@ -58,7 +61,15 @@ export default async function handler(req, res) {
       ...reel,
       renderStatus: exportsPayload.find((item) => item.reelIndex === reel.index)?.status || "failed",
     })),
-  });
+  };
+
+  const updated =
+    updateJob(job.id, nextPatch) ||
+    {
+      ...job,
+      ...nextPatch,
+      updatedAt: new Date().toISOString(),
+    };
 
   sendJson(res, 200, updated);
 }

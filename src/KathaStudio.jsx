@@ -790,6 +790,7 @@ export default function KathaStudio({ darkMode }) {
     try {
       const nextJob = await postJson("/api/katha/blueprint", {
         jobId: job.id,
+        job,
         selectedStoryId,
         storyEdits: storyDraft,
       });
@@ -824,6 +825,10 @@ export default function KathaStudio({ darkMode }) {
     try {
       const nextJob = await postJson("/api/katha/assets", {
         jobId: job.id,
+        job: {
+          ...job,
+          reels: reelDrafts,
+        },
         reels: reelDrafts,
         voiceId,
       });
@@ -953,7 +958,7 @@ export default function KathaStudio({ darkMode }) {
   );
 
   const renderAll = async () => {
-    if (!job?.id) return;
+    if (!job?.id || !job.assets?.length) return;
     setBusy("render");
     setError("");
     revokeExportUrls(exportsState);
@@ -963,7 +968,21 @@ export default function KathaStudio({ darkMode }) {
     setRenderProgress({ total: 7, done: 0, current: "Preparing" });
 
     try {
-      const manifest = await postJson("/api/katha/render", { jobId: job.id });
+      const manifest = {
+        reels: reelDrafts.map((reel) => {
+          const asset = job.assets.find((entry) => entry.reelIndex === reel.index);
+          return {
+            index: reel.index,
+            title: reel.title,
+            onscreenText: reel.onscreenText,
+            subtitleSrt: asset?.subtitleSrt || "",
+            imageUrl: asset?.imageUrl || "",
+            voiceoverUrl: asset?.voiceoverUrl || "",
+            musicUrl: asset?.musicUrl || "",
+            durationSec: asset?.durationSec || 20,
+          };
+        }),
+      };
       const collected = [];
 
       for (const manifestReel of manifest.reels) {
@@ -1018,18 +1037,26 @@ export default function KathaStudio({ darkMode }) {
       setZipBlob(nextZipBlob);
       setZipName(nextZipName);
       setExportsState(collected);
-
-      const persisted = await postJson("/api/katha/render", {
-        jobId: job.id,
-        exports: collected.map((item) => ({
-          reelIndex: item.reelIndex,
-          title: item.title,
-          fileName: item.fileName,
-          status: item.status,
-          sizeBytes: item.sizeBytes,
-        })),
-      });
-      setJob(persisted);
+      setJob((current) =>
+        current
+          ? {
+              ...current,
+              status: "render-complete",
+              stage: "export-download",
+              exports: collected.map((item) => ({
+                reelIndex: item.reelIndex,
+                title: item.title,
+                fileName: item.fileName,
+                status: item.status,
+                sizeBytes: item.sizeBytes,
+              })),
+              reels: current.reels.map((reel) => ({
+                ...reel,
+                renderStatus: collected.find((item) => item.reelIndex === reel.index)?.status || "failed",
+              })),
+            }
+          : current
+      );
     } catch (err) {
       setError(err.message);
     } finally {
