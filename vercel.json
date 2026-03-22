@@ -1,0 +1,23 @@
+{
+  "functions": {
+    "api/voices.js": { "maxDuration": 10 },
+    "api/katha/research.js": { "maxDuration": 20 },
+    "api/katha/blueprint.js": { "maxDuration": 30 },
+    "api/katha/assets.js": { "maxDuration": 60 },
+    "api/katha/render.js": { "maxDuration": 20 },
+    "api/katha/job/[id].js": { "maxDuration": 10 }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "credentialless" }
+      ]
+    }
+  ],
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
