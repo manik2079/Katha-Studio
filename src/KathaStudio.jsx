@@ -10,39 +10,34 @@ const PIPELINE_STAGES = [
     id: "story-intake",
     number: "01",
     title: "Story Intake",
-    blurb: "Curated source filters, region selection, and trust-gated intake.",
   },
   {
     id: "pipeline-status",
     number: "02",
     title: "Research Dossier",
-    blurb: "Agent 1 ranks one primary story and backup candidates.",
   },
   {
     id: "review-edit",
     number: "03",
     title: "Script Room",
-    blurb: "Agent 2 turns the story into a seven-part oral reel arc.",
   },
   {
     id: "asset-generation",
     number: "04",
     title: "Asset Wall",
-    blurb: "Agent 3 generates visuals, voice, music, and subtitle cues.",
   },
   {
     id: "export-download",
     number: "05",
     title: "Export Deck",
-    blurb: "Agent 4 renders the reel pack and prepares download bundles.",
   },
 ];
 
 const WORKSPACE_TABS = [
-  { id: "research", label: "Research Deck" },
+  { id: "research", label: "Research" },
   { id: "scripts", label: "Script Room" },
   { id: "assets", label: "Asset Wall" },
-  { id: "exports", label: "Export Deck" },
+  { id: "exports", label: "Exports" },
 ];
 
 const KATHA_CSS = `
@@ -328,13 +323,6 @@ const KATHA_CSS = `
   font-size: 14px;
 }
 
-.katha-stage-copy {
-  margin-top: 6px;
-  font-size: 12px;
-  line-height: 1.55;
-  color: var(--muted);
-}
-
 .katha-control-grid {
   display: grid;
   gap: 12px;
@@ -440,12 +428,6 @@ const KATHA_CSS = `
   font-weight: 800;
 }
 
-.katha-agent-copy {
-  font-size: 13px;
-  line-height: 1.58;
-  color: var(--muted);
-}
-
 .katha-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -499,12 +481,6 @@ const KATHA_CSS = `
   font-size: 22px;
   line-height: 1.08;
   font-family: "Georgia", "Times New Roman", serif;
-}
-
-.katha-story-copy {
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--muted);
 }
 
 .katha-chip-row {
@@ -934,7 +910,7 @@ function SectionHeader({ eyebrow, title, copy, actions }) {
   return (
     <div className="katha-header-row">
       <div>
-        <div className="katha-eyebrow">{eyebrow}</div>
+        {eyebrow ? <div className="katha-eyebrow">{eyebrow}</div> : null}
         <h2 className="katha-section-title">{title}</h2>
         {copy ? <p className="katha-section-copy">{copy}</p> : null}
       </div>
@@ -1053,28 +1029,24 @@ export default function KathaStudio({ darkMode }) {
       id: "a1",
       name: "Agent 1",
       title: "Research + Collect",
-      copy: "Curated source set ko score karke one primary story aur backup options nikaalta hai.",
       status: busy === "research" ? "working" : job?.storyDossier ? "ready" : "idle",
     },
     {
       id: "a2",
       name: "Agent 2",
       title: "Story Architect",
-      copy: "Selected source ko dadi-nani tone me seven connected reels me todta hai.",
       status: busy === "blueprint" ? "working" : reelDrafts.length === 7 ? "ready" : selectedStory ? "blocked" : "idle",
     },
     {
       id: "a3",
       name: "Agent 3",
       title: "Asset Generator",
-      copy: "Visuals, voiceover, music bed aur subtitle cues ko per-reel bundle me banata hai.",
       status: busy === "assets" ? "working" : readyAssetCount > 0 ? "ready" : reelDrafts.length === 7 ? "blocked" : "idle",
     },
     {
       id: "a4",
       name: "Agent 4",
       title: "Reel Editor",
-      copy: "FFmpeg pipeline se final vertical MP4 reels aur ZIP export assemble karta hai.",
       status: busy === "render" ? "working" : readyExportCount > 0 ? "ready" : readyAssetCount > 0 ? "blocked" : "idle",
     },
   ];
@@ -1385,7 +1357,6 @@ export default function KathaStudio({ darkMode }) {
             <SectionHeader
               eyebrow="Research Deck"
               title="Shortlisted story stack"
-              copy="Primary story aur backup options ko ek hi jagah compare karo, phir best oral arc choose karo."
               actions={<StatusPill label={shortlistedStories.length ? `${shortlistedStories.length} stories` : "No stories yet"} tone={shortlistedStories.length ? "ok" : "idle"} />}
             />
             {shortlistedStories.length ? (
@@ -1412,7 +1383,6 @@ export default function KathaStudio({ darkMode }) {
                         <StatusPill label={`Score ${story.score}`} tone={index === 0 ? "ok" : "idle"} />
                       </div>
                       <div style={{ fontWeight: 800, fontSize: 15 }}>{story.title}</div>
-                      <div className="katha-story-copy">{story.synopsis}</div>
                       <div className="katha-chip-row">
                         <span className="katha-chip">{story.region}</span>
                         <span className="katha-chip">{story.theme}</span>
@@ -1423,7 +1393,7 @@ export default function KathaStudio({ darkMode }) {
                 })}
               </div>
             ) : (
-              <EmptyState>Source filters set karke Agent 1 ko run karo. Curated shortlist yahin populate hogi.</EmptyState>
+              <EmptyState>Run Agent 1</EmptyState>
             )}
           </section>
 
@@ -1431,7 +1401,6 @@ export default function KathaStudio({ darkMode }) {
             <SectionHeader
               eyebrow="Review Gate"
               title="Editable story dossier"
-              copy="Selected source ko clean karo, summary tighten karo, aur phir Agent 2 se seven-reel blueprint nikaalo."
               actions={
                 <button type="button" className="katha-button" onClick={buildBlueprint} disabled={!canBuildBlueprint}>
                   {busy === "blueprint" ? "Writing blueprint..." : "Build 7-part script"}
@@ -1450,7 +1419,7 @@ export default function KathaStudio({ darkMode }) {
                     />
                   </label>
                   <div className="katha-note">
-                    <strong>Authenticity note</strong>
+                    <strong>Authenticity</strong>
                     <span>{selectedStory.authenticityNotes}</span>
                   </div>
                 </div>
@@ -1488,7 +1457,7 @@ export default function KathaStudio({ darkMode }) {
                 </div>
               </div>
             ) : (
-              <EmptyState>Shortlist me se koi story select karte hi editable dossier yahin khulega.</EmptyState>
+              <EmptyState>Select a story</EmptyState>
             )}
           </section>
         </div>
@@ -1502,7 +1471,6 @@ export default function KathaStudio({ darkMode }) {
             <SectionHeader
               eyebrow="Script Room"
               title="Seven-part reel structure"
-              copy="Har reel ko hook, narration, visual prompt aur cliffhanger ke saath individually refine karo."
               actions={
                 <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                   <StatusPill label={job?.seriesBlueprint?.hook ? "Series hook ready" : "Waiting"} tone={job?.seriesBlueprint?.hook ? "ok" : "idle"} />
@@ -1515,7 +1483,7 @@ export default function KathaStudio({ darkMode }) {
             {reelDrafts.length ? (
               <div className="katha-reel-layout">
                 <div className="katha-note">
-                  <strong>Series overview</strong>
+                  <strong>Series</strong>
                   <span>
                     {job?.seriesBlueprint?.hook || "Hook pending."}
                     {job?.seriesBlueprint?.emotionalProgression?.length
@@ -1616,7 +1584,7 @@ export default function KathaStudio({ darkMode }) {
                 ) : null}
               </div>
             ) : (
-              <EmptyState>Agent 2 se blueprint generate hote hi yahan structured reel editor khulega.</EmptyState>
+              <EmptyState>Run Agent 2</EmptyState>
             )}
           </section>
         </div>
@@ -1630,7 +1598,6 @@ export default function KathaStudio({ darkMode }) {
             <SectionHeader
               eyebrow="Asset Wall"
               title="Per-reel media bundles"
-              copy="Visual, voiceover aur music ko single review wall me dekho. Approved hone par Agent 4 render chalao."
               actions={
                 <button type="button" className="katha-button" onClick={renderAll} disabled={!canRender}>
                   {busy === "render" ? "Rendering reel pack..." : "Render 7 reels"}
@@ -1656,14 +1623,13 @@ export default function KathaStudio({ darkMode }) {
                           <audio controls src={asset.voiceoverUrl} />
                           <audio controls src={asset.musicUrl} />
                         </div>
-                        <div className="katha-export-sub">Subtitle timing narration duration ke saath synced hai.</div>
                       </div>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <EmptyState>Agent 3 run karne ke baad yahin preview wall me visuals aur audio bundles aayenge.</EmptyState>
+              <EmptyState>Run Agent 3</EmptyState>
             )}
           </section>
         </div>
@@ -1675,8 +1641,7 @@ export default function KathaStudio({ darkMode }) {
         <section className="katha-panel katha-section">
           <SectionHeader
             eyebrow="Export Deck"
-            title="Render queue and downloads"
-            copy="Final MP4 reels, ZIP bundle, aur per-reel render state ko ek jagah se monitor karo."
+            title="Exports"
             actions={
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
                 {busy === "render" ? (
@@ -1712,7 +1677,7 @@ export default function KathaStudio({ darkMode }) {
               ))}
             </div>
           ) : (
-            <EmptyState>Render trigger karte hi export queue aur download controls yahan aayenge.</EmptyState>
+            <EmptyState>Run Agent 4</EmptyState>
           )}
         </section>
       </div>
@@ -1755,17 +1720,12 @@ export default function KathaStudio({ darkMode }) {
         <section className="katha-panel katha-hero">
           <div className="katha-hero-grid">
             <div style={{ display: "grid", gap: 18 }}>
-              <StatusPill label="Katha Studio / 4-agent workflow" tone="warn" />
-              <div className="katha-eyebrow">Untapped Indian regional stories, structured for oral reels</div>
+              <StatusPill label="Katha Studio" tone="warn" />
               <h1 className="katha-display">
                 Kahani ko research se
                 <br />
                 <span>reel pack</span> tak clearly chalao.
               </h1>
-              <p className="katha-hero-copy">
-                Ab UI ek clean production desk ki tarah structured hai: left rail me agent stations, center me active workspace,
-                aur right side me story + output overview. Review gate intact rahega, clutter nahi.
-              </p>
               <div className="katha-chip-row">
                 <span className="katha-chip">Curated public-domain intake</span>
                 <span className="katha-chip">Hindi-belt oral narration</span>
@@ -1788,9 +1748,7 @@ export default function KathaStudio({ darkMode }) {
           <aside className="katha-rail">
             <section className="katha-panel katha-section">
               <SectionHeader
-                eyebrow="Pipeline rail"
-                title="Stage map"
-                copy="Har stage ka clear job aur completion state."
+                title="Modules"
               />
               <div className="katha-stage-list">
                 {PIPELINE_STAGES.map((stage, index) => (
@@ -1803,7 +1761,6 @@ export default function KathaStudio({ darkMode }) {
                     <div className="katha-stage-number">{stage.number}</div>
                     <div>
                       <div className="katha-stage-title">{stage.title}</div>
-                      <div className="katha-stage-copy">{stage.blurb}</div>
                     </div>
                   </div>
                 ))}
@@ -1812,9 +1769,7 @@ export default function KathaStudio({ darkMode }) {
 
             <section className="katha-panel katha-section">
               <SectionHeader
-                eyebrow="Studio controls"
-                title="Story intake"
-                copy="Source filters ko left rail me rakha gaya hai, taaki workspace clutter-free rahe."
+                title="Story Intake"
               />
               <div className="katha-control-grid">
                 <label className="katha-field">
@@ -1878,9 +1833,7 @@ export default function KathaStudio({ darkMode }) {
 
             <section className="katha-panel katha-section">
               <SectionHeader
-                eyebrow="AI agent stations"
-                title="Operational agents"
-                copy="Each agent ka dedicated place aur next action yahin se visible hai."
+                title="Agents"
               />
               <div className="katha-agent-list">
                 {agentStations.map((agent) => (
@@ -1892,7 +1845,6 @@ export default function KathaStudio({ darkMode }) {
                       </div>
                       <StatusPill label={agent.status} tone={getAgentTone(agent.status)} />
                     </div>
-                    <div className="katha-agent-copy">{agent.copy}</div>
 
                     {agent.id === "a3" ? (
                       <label className="katha-field">
@@ -1936,9 +1888,7 @@ export default function KathaStudio({ darkMode }) {
           <main className="katha-main">
             <section className="katha-panel katha-section">
               <SectionHeader
-                eyebrow="Workspace"
-                title="Active production desk"
-                copy="Main canvas ab sirf current work surface dikhata hai: research, script, assets, ya exports."
+                title="Workspace"
                 actions={
                   <div className="katha-tabs">
                     {WORKSPACE_TABS.map((tab) => (
@@ -1962,9 +1912,8 @@ export default function KathaStudio({ darkMode }) {
           <aside className="katha-overview">
             <section className="katha-panel katha-overview-card">
               <SectionHeader
-                eyebrow="Story overview"
+                eyebrow="Story"
                 title={selectedStory ? selectedStory.title : "No story selected"}
-                copy={selectedStory ? selectedStory.synopsis : "Agent 1 shortlist ke baad yahan selected story ka quick overview aayega."}
                 actions={<StatusPill label={selectedStory ? selectedStory.region : "Waiting"} tone={selectedStory ? "idle" : "warn"} />}
               />
               {selectedStory ? (
@@ -1974,16 +1923,13 @@ export default function KathaStudio({ darkMode }) {
                     <span className="katha-chip">{selectedStory.ageTone}</span>
                     <span className="katha-chip">{selectedStory.copyrightStatus}</span>
                   </div>
-                  <div className="katha-overview-copy">{selectedStory.authenticityNotes}</div>
                 </>
               ) : null}
             </section>
 
             <section className="katha-panel katha-overview-card">
               <SectionHeader
-                eyebrow="Series monitor"
-                title="Review gate status"
-                copy="Story approve hone ke baad hi assets aur final render aage badhenge."
+                title="Review Gate"
               />
               <div className="katha-grid">
                 <div className="katha-note">
@@ -2002,14 +1948,12 @@ export default function KathaStudio({ darkMode }) {
 
             <section className="katha-panel katha-overview-card">
               <SectionHeader
-                eyebrow="Output health"
-                title="Render overview"
-                copy="Agent 4 ki live progress aur export readiness yahin pin rahegi."
+                title="Render"
               />
               <div className="katha-grid">
                 <div className="katha-note">
-                  <strong>Current run</strong>
-                  <span>{busy === "render" ? renderProgress.current || "Rendering..." : readyExportCount ? "Rendered exports available." : "Render not started yet."}</span>
+                  <strong>Run</strong>
+                  <span>{busy === "render" ? renderProgress.current || "Rendering..." : readyExportCount ? "Rendered" : "Idle"}</span>
                 </div>
                 <div className="katha-progress">
                   <div className="katha-progress-bar" style={{ width: `${exportProgress}%` }} />
