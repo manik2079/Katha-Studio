@@ -5,39 +5,12 @@ const REGIONS = ["Rajasthan", "Assam", "Tamil Nadu", "Uttar Pradesh"];
 const THEMES = ["courage", "resilience", "justice", "wit"];
 const AGE_TONES = ["family", "kids", "young-adult"];
 
-const PIPELINE_STAGES = [
-  {
-    id: "story-intake",
-    number: "01",
-    title: "Story Intake",
-  },
-  {
-    id: "pipeline-status",
-    number: "02",
-    title: "Research Dossier",
-  },
-  {
-    id: "review-edit",
-    number: "03",
-    title: "Script Room",
-  },
-  {
-    id: "asset-generation",
-    number: "04",
-    title: "Asset Wall",
-  },
-  {
-    id: "export-download",
-    number: "05",
-    title: "Export Deck",
-  },
-];
-
-const WORKSPACE_TABS = [
-  { id: "research", label: "Research" },
-  { id: "scripts", label: "Script Room" },
-  { id: "assets", label: "Asset Wall" },
-  { id: "exports", label: "Exports" },
+const MODULE_TABS = [
+  { id: "setup", label: "Setup" },
+  { id: "agent1", label: "Agent 1" },
+  { id: "agent2", label: "Agent 2" },
+  { id: "agent3", label: "Agent 3" },
+  { id: "agent4", label: "Agent 4" },
 ];
 
 const KATHA_CSS = `
@@ -45,15 +18,15 @@ const KATHA_CSS = `
   min-height: 100vh;
   color: var(--text);
   background:
-    radial-gradient(circle at 10% 12%, var(--glow-soft), transparent 28%),
-    radial-gradient(circle at 86% 10%, var(--glow-hot), transparent 24%),
+    radial-gradient(circle at 8% 10%, var(--glow-soft), transparent 26%),
+    radial-gradient(circle at 88% 8%, var(--glow-hot), transparent 22%),
     linear-gradient(180deg, var(--surface) 0%, var(--surface-deep) 100%);
 }
 
 .katha-frame {
-  max-width: 1520px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 28px 18px 92px;
+  padding: 28px 18px 72px;
 }
 
 .katha-panel {
@@ -64,146 +37,94 @@ const KATHA_CSS = `
   backdrop-filter: blur(16px);
 }
 
-.katha-hero {
-  position: relative;
-  overflow: hidden;
-  padding: 30px;
-  background:
-    radial-gradient(circle at 18% 20%, rgba(255,255,255,0.08), transparent 24%),
-    radial-gradient(circle at 82% 16%, rgba(197,97,57,0.18), transparent 24%),
-    linear-gradient(135deg, var(--hero-start) 0%, var(--hero-mid) 48%, var(--hero-end) 100%);
+.katha-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 24px 26px;
 }
 
-.katha-hero::after {
-  content: "";
-  position: absolute;
-  inset: auto -90px -140px auto;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(255,238,208,0.18), transparent 68%);
-  pointer-events: none;
-}
-
-.katha-hero-grid {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
-  gap: 24px;
-  align-items: start;
-}
-
-.katha-eyebrow {
+.katha-kicker {
   font-size: 11px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
   color: var(--muted-strong);
 }
 
-.katha-display {
-  margin: 0;
+.katha-title {
+  margin: 8px 0 0;
   font-family: "Georgia", "Times New Roman", serif;
-  font-size: clamp(40px, 6vw, 76px);
-  line-height: 0.94;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 0.95;
   letter-spacing: -0.04em;
 }
 
-.katha-display span {
+.katha-title span {
   color: var(--accent);
 }
 
-.katha-hero-copy {
-  margin: 0;
-  max-width: 760px;
-  font-size: 18px;
-  line-height: 1.62;
-  color: var(--text-soft);
+.katha-header-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
-.katha-hero-metrics {
+.katha-tabs {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  padding: 20px;
-  border-radius: 24px;
-  background: var(--panel-soft);
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.katha-tab {
   border: 1px solid var(--line-soft);
-}
-
-.katha-stat-card {
-  display: grid;
-  gap: 4px;
-  padding: 14px;
-  border-radius: 18px;
   background: var(--inner);
-  border: 1px solid var(--line-soft);
-}
-
-.katha-stat-label {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.katha-stat-value {
-  font-size: 26px;
+  color: var(--text-soft);
+  border-radius: 18px;
+  min-height: 58px;
+  font-size: 13px;
   font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+}
+
+.katha-tab:hover {
+  transform: translateY(-1px);
+}
+
+.katha-tab[data-active="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent-line);
   color: var(--text);
 }
 
-.katha-stat-sub {
-  font-size: 12px;
-  color: var(--muted);
+.katha-tab:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  transform: none;
 }
 
-.katha-layout {
-  display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 320px;
-  gap: 18px;
+.katha-stage {
   margin-top: 18px;
-  align-items: start;
-}
-
-.katha-rail,
-.katha-overview {
-  position: sticky;
-  top: 94px;
-  display: grid;
-  gap: 18px;
-}
-
-.katha-main {
-  display: grid;
-  gap: 18px;
-}
-
-.katha-section {
   padding: 24px;
 }
 
-.katha-header-row {
+.katha-stage-head {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 
-.katha-section-title {
-  margin: 4px 0 0;
-  font-size: 32px;
-  line-height: 1.02;
+.katha-stage-title {
+  margin: 6px 0 0;
   font-family: "Georgia", "Times New Roman", serif;
-}
-
-.katha-section-copy {
-  margin: 8px 0 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--muted);
+  font-size: 34px;
+  line-height: 1;
 }
 
 .katha-pill {
@@ -244,88 +165,31 @@ const KATHA_CSS = `
   color: #fca5a5;
 }
 
-.katha-note {
-  display: grid;
-  gap: 8px;
-  padding: 18px;
-  border-radius: 20px;
-  background: var(--inner);
-  border: 1px solid var(--line-soft);
-}
-
-.katha-note strong {
-  font-size: 12px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--muted-strong);
-}
-
-.katha-note span {
-  font-size: 14px;
-  line-height: 1.58;
-  color: var(--text-soft);
-}
-
 .katha-grid {
   display: grid;
   gap: 14px;
 }
 
-.katha-stage-list,
-.katha-agent-list {
-  display: grid;
-  gap: 12px;
+.katha-grid.two {
+  grid-template-columns: minmax(0, 0.88fr) minmax(320px, 0.72fr);
 }
 
-.katha-stage-item,
-.katha-agent-item,
-.katha-story-card,
-.katha-link-card,
-.katha-export-row,
-.katha-reel-editor,
-.katha-preview-card {
+.katha-grid.story {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.katha-grid.preview {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.katha-card {
   border-radius: 22px;
   border: 1px solid var(--line-soft);
   background: var(--inner);
 }
 
-.katha-stage-item {
-  padding: 14px 15px;
-  display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 12px;
-}
-
-.katha-stage-item[data-active="true"] {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-}
-
-.katha-stage-item[data-complete="true"] .katha-stage-number {
-  background: var(--accent);
-  color: var(--accent-contrast);
-}
-
-.katha-stage-number {
-  width: 38px;
-  height: 38px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(255,255,255,0.06);
-  color: var(--text-soft);
-  font-weight: 800;
-  font-size: 12px;
-}
-
-.katha-stage-title {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.katha-control-grid {
-  display: grid;
-  gap: 12px;
+.katha-card.pad {
+  padding: 18px;
 }
 
 .katha-field {
@@ -342,6 +206,7 @@ const KATHA_CSS = `
 .katha-select,
 .katha-textarea {
   width: 100%;
+  box-sizing: border-box;
   border: 1px solid var(--line-soft);
   background: var(--input);
   color: var(--text);
@@ -349,35 +214,31 @@ const KATHA_CSS = `
   padding: 13px 14px;
   font-size: 14px;
   outline: none;
-  box-sizing: border-box;
   font-family: inherit;
 }
 
 .katha-textarea {
   resize: vertical;
-  line-height: 1.56;
   min-height: 120px;
+  line-height: 1.56;
 }
 
 .katha-button,
-.katha-button-secondary,
-.katha-tab {
+.katha-button-secondary {
   border: none;
   cursor: pointer;
-  transition: transform 0.16s ease, opacity 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+  transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 .katha-button:hover,
-.katha-button-secondary:hover,
-.katha-tab:hover {
+.katha-button-secondary:hover {
   transform: translateY(-1px);
 }
 
 .katha-button:disabled,
-.katha-button-secondary:disabled,
-.katha-tab:disabled {
+.katha-button-secondary:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
-  opacity: 0.5;
   transform: none;
 }
 
@@ -385,7 +246,6 @@ const KATHA_CSS = `
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
   min-height: 46px;
   border-radius: 999px;
   padding: 0 18px;
@@ -410,59 +270,13 @@ const KATHA_CSS = `
   font-weight: 700;
 }
 
-.katha-agent-item {
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.katha-agent-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.katha-agent-name {
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.katha-tabs {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.katha-tab {
-  padding: 11px 14px;
-  border-radius: 999px;
-  background: var(--inner);
-  border: 1px solid var(--line-soft);
-  color: var(--text-soft);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.katha-tab[data-active="true"] {
-  background: var(--accent-soft);
-  border-color: var(--accent-line);
-  color: var(--text);
-}
-
-.katha-story-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
 .katha-story-card {
-  padding: 18px;
-  display: grid;
-  gap: 12px;
   text-align: left;
   color: inherit;
   cursor: pointer;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
 }
 
 .katha-story-card[data-active="true"] {
@@ -470,23 +284,16 @@ const KATHA_CSS = `
   border-color: var(--accent-line);
 }
 
-.katha-story-kicker {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  align-items: center;
-}
-
 .katha-story-title {
-  font-size: 22px;
-  line-height: 1.08;
   font-family: "Georgia", "Times New Roman", serif;
+  font-size: 23px;
+  line-height: 1.04;
 }
 
 .katha-chip-row {
   display: flex;
-  flex-wrap: wrap;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .katha-chip {
@@ -501,38 +308,42 @@ const KATHA_CSS = `
   color: var(--text-soft);
 }
 
-.katha-story-form,
-.katha-story-two-col {
+.katha-note {
   display: grid;
-  gap: 14px;
+  gap: 8px;
+  padding: 18px;
 }
 
-.katha-story-two-col {
-  grid-template-columns: minmax(0, 1.2fr) minmax(240px, 0.8fr);
+.katha-note strong {
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted-strong);
 }
 
-.katha-links {
+.katha-note span,
+.katha-note a {
+  font-size: 14px;
+  line-height: 1.56;
+  color: var(--text-soft);
+  text-decoration: none;
+}
+
+.katha-source-list {
   display: grid;
   gap: 10px;
 }
 
-.katha-link-card {
+.katha-source-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
   padding: 14px 16px;
-  color: inherit;
-  text-decoration: none;
 }
 
-.katha-link-card:hover {
+.katha-source-link:hover {
   border-color: var(--accent-line);
-}
-
-.katha-reel-layout {
-  display: grid;
-  gap: 16px;
 }
 
 .katha-reel-strip {
@@ -542,13 +353,13 @@ const KATHA_CSS = `
 }
 
 .katha-reel-tab {
+  text-align: left;
   border-radius: 18px;
   border: 1px solid var(--line-soft);
   background: var(--inner);
   color: inherit;
-  text-align: left;
-  padding: 12px;
   cursor: pointer;
+  padding: 12px;
 }
 
 .katha-reel-tab[data-active="true"] {
@@ -559,42 +370,29 @@ const KATHA_CSS = `
 .katha-reel-tab strong {
   display: block;
   font-size: 12px;
-  margin-bottom: 8px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted-strong);
+  margin-bottom: 8px;
 }
 
 .katha-reel-tab span {
   display: block;
   font-size: 13px;
-  line-height: 1.45;
+  line-height: 1.4;
   color: var(--text-soft);
 }
 
 .katha-reel-editor {
-  padding: 18px;
   display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+  padding: 18px;
 }
 
 .katha-editor-col {
   display: grid;
   gap: 12px;
-  align-content: start;
-}
-
-.katha-editor-meta {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.katha-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
 }
 
 .katha-preview-card {
@@ -604,7 +402,7 @@ const KATHA_CSS = `
 .katha-preview-visual {
   position: relative;
   aspect-ratio: 9 / 16;
-  background: #0f0d0c;
+  background: #0d0d0c;
 }
 
 .katha-preview-visual img {
@@ -619,7 +417,7 @@ const KATHA_CSS = `
   inset: auto 14px 14px 14px;
   padding: 10px 12px;
   border-radius: 14px;
-  background: rgba(7,6,6,0.58);
+  background: rgba(9,8,8,0.58);
   color: #fff7e8;
   font-size: 13px;
   line-height: 1.45;
@@ -627,9 +425,9 @@ const KATHA_CSS = `
 }
 
 .katha-preview-body {
-  padding: 16px;
   display: grid;
   gap: 12px;
+  padding: 16px;
 }
 
 .katha-audio-stack {
@@ -641,28 +439,26 @@ const KATHA_CSS = `
   width: 100%;
 }
 
-.katha-empty {
-  min-height: 220px;
+.katha-export-list {
   display: grid;
-  place-items: center;
-  text-align: center;
-  padding: 22px;
-  border-radius: 22px;
-  border: 1px dashed var(--line-soft);
-  background: var(--inner);
-  color: var(--muted);
-  line-height: 1.65;
+  gap: 12px;
 }
 
-.katha-overview-card {
+.katha-export-row {
   display: grid;
-  gap: 14px;
-  padding: 20px;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 16px 18px;
 }
 
-.katha-overview-copy {
+.katha-export-title {
+  font-weight: 800;
+}
+
+.katha-export-sub {
+  margin-top: 4px;
   font-size: 13px;
-  line-height: 1.62;
   color: var(--muted);
 }
 
@@ -679,34 +475,20 @@ const KATHA_CSS = `
   background: linear-gradient(90deg, var(--accent), var(--accent-deep));
 }
 
-.katha-export-list {
+.katha-empty {
+  min-height: 220px;
   display: grid;
-  gap: 12px;
-}
-
-.katha-export-row {
-  padding: 16px 18px;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  gap: 12px;
-  align-items: center;
-}
-
-.katha-export-meta {
-  display: grid;
-  gap: 4px;
-}
-
-.katha-export-title {
-  font-weight: 800;
-}
-
-.katha-export-sub {
-  font-size: 13px;
+  place-items: center;
+  border-radius: 22px;
+  border: 1px dashed var(--line-soft);
+  background: var(--inner);
   color: var(--muted);
+  text-align: center;
+  padding: 22px;
 }
 
 .katha-alert {
+  margin-top: 18px;
   padding: 14px 18px;
   border-radius: 22px;
   border: 1px solid rgba(248,113,113,0.26);
@@ -715,38 +497,28 @@ const KATHA_CSS = `
   line-height: 1.56;
 }
 
-@media (max-width: 1280px) {
-  .katha-layout {
+@media (max-width: 1100px) {
+  .katha-grid.two,
+  .katha-reel-editor,
+  .katha-grid.preview {
     grid-template-columns: 1fr;
   }
 
-  .katha-rail,
-  .katha-overview {
-    position: static;
+  .katha-grid.story {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .katha-rail {
-    order: 2;
-  }
-
-  .katha-overview {
-    order: 3;
-  }
-
-  .katha-main {
-    order: 1;
+  .katha-reel-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 980px) {
-  .katha-hero-grid,
-  .katha-story-two-col,
-  .katha-reel-editor {
-    grid-template-columns: 1fr;
+@media (max-width: 820px) {
+  .katha-tabs {
+    grid-template-columns: 1fr 1fr;
   }
 
-  .katha-story-grid,
-  .katha-preview-grid {
+  .katha-grid.story {
     grid-template-columns: 1fr;
   }
 
@@ -754,30 +526,23 @@ const KATHA_CSS = `
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .katha-hero {
-    padding: 24px;
+  .katha-export-row {
+    grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 640px) {
   .katha-frame {
-    padding: 18px 12px 64px;
+    padding: 18px 12px 56px;
   }
 
-  .katha-hero,
-  .katha-section {
+  .katha-header,
+  .katha-stage {
     padding: 18px;
   }
 
-  .katha-hero-metrics {
-    grid-template-columns: 1fr 1fr;
-  }
-
+  .katha-tabs,
   .katha-reel-strip {
-    grid-template-columns: 1fr;
-  }
-
-  .katha-export-row {
     grid-template-columns: 1fr;
   }
 }
@@ -868,54 +633,11 @@ function revokeExportUrls(items) {
   }
 }
 
-function getStageIndex(stage) {
-  return Math.max(
-    1,
-    PIPELINE_STAGES.findIndex((item) => item.id === stage) + 1 || 1
-  );
-}
-
-function getAgentTone(status) {
-  switch (status) {
-    case "working":
-      return "live";
-    case "ready":
-      return "ok";
-    case "blocked":
-      return "warn";
-    default:
-      return "idle";
-  }
-}
-
 function StatusPill({ label, tone = "idle" }) {
   return (
     <span className="katha-pill" data-tone={tone}>
       {label}
     </span>
-  );
-}
-
-function StatCard({ label, value, sub }) {
-  return (
-    <div className="katha-stat-card">
-      <div className="katha-stat-label">{label}</div>
-      <div className="katha-stat-value">{value}</div>
-      <div className="katha-stat-sub">{sub}</div>
-    </div>
-  );
-}
-
-function SectionHeader({ eyebrow, title, copy, actions }) {
-  return (
-    <div className="katha-header-row">
-      <div>
-        {eyebrow ? <div className="katha-eyebrow">{eyebrow}</div> : null}
-        <h2 className="katha-section-title">{title}</h2>
-        {copy ? <p className="katha-section-copy">{copy}</p> : null}
-      </div>
-      {actions}
-    </div>
   );
 }
 
@@ -925,6 +647,7 @@ function EmptyState({ children }) {
 
 export default function KathaStudio({ darkMode }) {
   const loadFfmpeg = useFfmpeg();
+  const [activeTab, setActiveTab] = useState("setup");
   const [filters, setFilters] = useState({
     sourceSet: "curated-public",
     region: "Rajasthan",
@@ -936,7 +659,6 @@ export default function KathaStudio({ darkMode }) {
   const [selectedReelIndex, setSelectedReelIndex] = useState(1);
   const [storyDraft, setStoryDraft] = useState({ title: "", synopsis: "", storyText: "" });
   const [reelDrafts, setReelDrafts] = useState([]);
-  const [workspaceTab, setWorkspaceTab] = useState("research");
   const [voices, setVoices] = useState([]);
   const [voiceId, setVoiceId] = useState("");
   const [busy, setBusy] = useState("");
@@ -1014,42 +736,22 @@ export default function KathaStudio({ darkMode }) {
     [reelDrafts, selectedReelIndex]
   );
 
-  const currentStage = getStageIndex(job?.stage);
-  const primaryStoryScore = shortlistedStories[0]?.score || 0;
   const readyAssetCount = job?.assets?.filter((item) => item.status === "ready").length || 0;
   const readyExportCount = exportsState.filter((item) => item.status === "ready").length;
-  const canBuildBlueprint = busy === "" && Boolean(job?.id && selectedStoryId);
-  const canGenerateAssets = busy === "" && Boolean(job?.id && reelDrafts.length === 7);
-  const canRender = busy === "" && Boolean(job?.assets?.length);
-  const seriesProgress = reelDrafts.length ? Math.round((readyAssetCount / reelDrafts.length) * 100) : 0;
-  const exportProgress = renderProgress.total ? Math.round((renderProgress.done / renderProgress.total) * 100) : 0;
+  const canRunAgent1 = busy === "";
+  const canRunAgent2 = busy === "" && Boolean(job?.id && selectedStoryId);
+  const canRunAgent3 = busy === "" && reelDrafts.length === 7;
+  const canRunAgent4 = busy === "" && Boolean(job?.assets?.length);
+  const assetProgress = reelDrafts.length ? Math.round((readyAssetCount / reelDrafts.length) * 100) : 0;
+  const renderProgressPercent = renderProgress.total ? Math.round((renderProgress.done / renderProgress.total) * 100) : 0;
 
-  const agentStations = [
-    {
-      id: "a1",
-      name: "Agent 1",
-      title: "Research + Collect",
-      status: busy === "research" ? "working" : job?.storyDossier ? "ready" : "idle",
-    },
-    {
-      id: "a2",
-      name: "Agent 2",
-      title: "Story Architect",
-      status: busy === "blueprint" ? "working" : reelDrafts.length === 7 ? "ready" : selectedStory ? "blocked" : "idle",
-    },
-    {
-      id: "a3",
-      name: "Agent 3",
-      title: "Asset Generator",
-      status: busy === "assets" ? "working" : readyAssetCount > 0 ? "ready" : reelDrafts.length === 7 ? "blocked" : "idle",
-    },
-    {
-      id: "a4",
-      name: "Agent 4",
-      title: "Reel Editor",
-      status: busy === "render" ? "working" : readyExportCount > 0 ? "ready" : readyAssetCount > 0 ? "blocked" : "idle",
-    },
-  ];
+  const tabAccess = {
+    setup: true,
+    agent1: Boolean(job?.storyDossier),
+    agent2: Boolean(selectedStory),
+    agent3: reelDrafts.length === 7,
+    agent4: Boolean(job?.assets?.length),
+  };
 
   async function postJson(url, payload) {
     const response = await fetch(url, {
@@ -1070,10 +772,10 @@ export default function KathaStudio({ darkMode }) {
     revokeExportUrls(exportsState);
     setExportsState([]);
     setZipBlob(null);
-    setWorkspaceTab("research");
     try {
       const nextJob = await postJson("/api/katha/research", filters);
       setJob(nextJob);
+      setActiveTab("agent1");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1092,7 +794,7 @@ export default function KathaStudio({ darkMode }) {
         storyEdits: storyDraft,
       });
       setJob(nextJob);
-      setWorkspaceTab("scripts");
+      setActiveTab("agent2");
       setSelectedReelIndex(1);
     } catch (err) {
       setError(err.message);
@@ -1126,7 +828,7 @@ export default function KathaStudio({ darkMode }) {
         voiceId,
       });
       setJob(nextJob);
-      setWorkspaceTab("assets");
+      setActiveTab("agent3");
     } catch (err) {
       setError(err.message);
     } finally {
@@ -1254,11 +956,11 @@ export default function KathaStudio({ darkMode }) {
     if (!job?.id) return;
     setBusy("render");
     setError("");
-    setWorkspaceTab("exports");
-    setRenderProgress({ total: 7, done: 0, current: "Preparing render manifest" });
     revokeExportUrls(exportsState);
     setExportsState([]);
     setZipBlob(null);
+    setActiveTab("agent4");
+    setRenderProgress({ total: 7, done: 0, current: "Preparing" });
 
     try {
       const manifest = await postJson("/api/katha/render", { jobId: job.id });
@@ -1267,7 +969,7 @@ export default function KathaStudio({ darkMode }) {
       for (const manifestReel of manifest.reels) {
         setRenderProgress((current) => ({
           ...current,
-          current: `Rendering reel ${manifestReel.index}`,
+          current: `Reel ${manifestReel.index}`,
         }));
 
         try {
@@ -1296,6 +998,7 @@ export default function KathaStudio({ darkMode }) {
           zipFiles.push({ name: `reels/${item.fileName}`, data: item.blob });
         }
       });
+
       reelDrafts.forEach((reel) => {
         const asset = job.assets.find((entry) => entry.reelIndex === reel.index);
         zipFiles.push({
@@ -1308,20 +1011,6 @@ export default function KathaStudio({ darkMode }) {
             data: asset.subtitleSrt,
           });
         }
-        if (asset?.imageUrl) {
-          zipFiles.push({
-            name: `assets/reel-${String(reel.index).padStart(2, "0")}.image.url.txt`,
-            data: asset.imageUrl,
-          });
-        }
-      });
-      zipFiles.push({
-        name: "story-dossier.json",
-        data: JSON.stringify(job.storyDossier, null, 2),
-      });
-      zipFiles.push({
-        name: "series-blueprint.json",
-        data: JSON.stringify({ seriesBlueprint: job.seriesBlueprint, reels: reelDrafts }, null, 2),
       });
 
       const nextZipBlob = await createZipBlob(zipFiles);
@@ -1349,339 +1038,457 @@ export default function KathaStudio({ darkMode }) {
     }
   };
 
-  const workspaceBody = (() => {
-    if (workspaceTab === "research") {
-      return (
+  const renderSetupTab = () => (
+    <div className="katha-grid two">
+      <div className="katha-card pad">
         <div className="katha-grid">
-          <section className="katha-panel katha-section">
-            <SectionHeader
-              eyebrow="Research Deck"
-              title="Shortlisted story stack"
-              actions={<StatusPill label={shortlistedStories.length ? `${shortlistedStories.length} stories` : "No stories yet"} tone={shortlistedStories.length ? "ok" : "idle"} />}
-            />
-            {shortlistedStories.length ? (
-              <div className="katha-story-grid">
-                {shortlistedStories.map((story, index) => {
-                  const active = story.id === selectedStoryId;
-                  return (
-                    <button
-                      key={story.id}
-                      type="button"
-                      className="katha-story-card"
-                      data-active={active}
-                      onClick={() => {
-                        setSelectedStoryId(story.id);
-                        setStoryDraft({
-                          title: story.title,
-                          synopsis: story.synopsis,
-                          storyText: story.storyText,
-                        });
-                      }}
-                    >
-                      <div className="katha-story-kicker">
-                        <div className="katha-story-title">{index === 0 ? "Primary pick" : `Backup ${index}`}</div>
-                        <StatusPill label={`Score ${story.score}`} tone={index === 0 ? "ok" : "idle"} />
-                      </div>
-                      <div style={{ fontWeight: 800, fontSize: 15 }}>{story.title}</div>
-                      <div className="katha-chip-row">
-                        <span className="katha-chip">{story.region}</span>
-                        <span className="katha-chip">{story.theme}</span>
-                        <span className="katha-chip">{story.copyrightStatus}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            ) : (
-              <EmptyState>Run Agent 1</EmptyState>
-            )}
-          </section>
+          <label className="katha-field">
+            <span>Source set</span>
+            <select
+              className="katha-select"
+              value={filters.sourceSet}
+              onChange={(event) => setFilters((current) => ({ ...current, sourceSet: event.target.value }))}
+            >
+              <option value="curated-public">Curated public-domain / cultural portals</option>
+              <option value="manual-library">Manual library</option>
+            </select>
+          </label>
 
-          <section className="katha-panel katha-section">
-            <SectionHeader
-              eyebrow="Review Gate"
-              title="Editable story dossier"
-              actions={
-                <button type="button" className="katha-button" onClick={buildBlueprint} disabled={!canBuildBlueprint}>
-                  {busy === "blueprint" ? "Writing blueprint..." : "Build 7-part script"}
-                </button>
-              }
-            />
-            {selectedStory ? (
-              <div className="katha-story-form">
-                <div className="katha-story-two-col">
-                  <label className="katha-field">
-                    <span>Story title</span>
-                    <input
-                      className="katha-input"
-                      value={storyDraft.title}
-                      onChange={(event) => setStoryDraft((current) => ({ ...current, title: event.target.value }))}
-                    />
-                  </label>
-                  <div className="katha-note">
-                    <strong>Authenticity</strong>
-                    <span>{selectedStory.authenticityNotes}</span>
-                  </div>
-                </div>
+          <label className="katha-field">
+            <span>Region</span>
+            <select
+              className="katha-select"
+              value={filters.region}
+              onChange={(event) => setFilters((current) => ({ ...current, region: event.target.value }))}
+            >
+              {REGIONS.map((region) => (
+                <option key={region} value={region}>
+                  {region}
+                </option>
+              ))}
+            </select>
+          </label>
 
-                <label className="katha-field">
-                  <span>Synopsis</span>
-                  <textarea
-                    className="katha-textarea"
-                    rows={4}
-                    value={storyDraft.synopsis}
-                    onChange={(event) => setStoryDraft((current) => ({ ...current, synopsis: event.target.value }))}
-                  />
-                </label>
+          <label className="katha-field">
+            <span>Theme</span>
+            <select
+              className="katha-select"
+              value={filters.theme}
+              onChange={(event) => setFilters((current) => ({ ...current, theme: event.target.value }))}
+            >
+              {THEMES.map((theme) => (
+                <option key={theme} value={theme}>
+                  {theme}
+                </option>
+              ))}
+            </select>
+          </label>
 
-                <label className="katha-field">
-                  <span>Source narrative</span>
-                  <textarea
-                    className="katha-textarea"
-                    rows={8}
-                    value={storyDraft.storyText}
-                    onChange={(event) => setStoryDraft((current) => ({ ...current, storyText: event.target.value }))}
-                  />
-                </label>
-
-                <div className="katha-links">
-                  {selectedStory.sourceLinks?.map((link) => (
-                    <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className="katha-link-card">
-                      <div>
-                        <div style={{ fontWeight: 700 }}>{link.label}</div>
-                        <div className="katha-export-sub">{link.type}</div>
-                      </div>
-                      <StatusPill label="Source" tone="idle" />
-                    </a>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <EmptyState>Select a story</EmptyState>
-            )}
-          </section>
+          <label className="katha-field">
+            <span>Age tone</span>
+            <select
+              className="katha-select"
+              value={filters.ageTone}
+              onChange={(event) => setFilters((current) => ({ ...current, ageTone: event.target.value }))}
+            >
+              {AGE_TONES.map((tone) => (
+                <option key={tone} value={tone}>
+                  {tone}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
-      );
+      </div>
+
+      <div className="katha-card katha-note">
+        <strong>Next</strong>
+        <span>Start Agent 1</span>
+        <button type="button" className="katha-button" onClick={startResearch} disabled={!canRunAgent1}>
+          {busy === "research" ? "Running..." : "Run Agent 1"}
+        </button>
+      </div>
+    </div>
+  );
+
+  const renderAgent1Tab = () => {
+    if (!shortlistedStories.length) {
+      return <EmptyState>Complete Setup</EmptyState>;
     }
 
-    if (workspaceTab === "scripts") {
-      return (
-        <div className="katha-grid">
-          <section className="katha-panel katha-section">
-            <SectionHeader
-              eyebrow="Script Room"
-              title="Seven-part reel structure"
-              actions={
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                  <StatusPill label={job?.seriesBlueprint?.hook ? "Series hook ready" : "Waiting"} tone={job?.seriesBlueprint?.hook ? "ok" : "idle"} />
-                  <button type="button" className="katha-button" onClick={generateAssets} disabled={!canGenerateAssets}>
-                    {busy === "assets" ? "Generating assets..." : "Approve and generate assets"}
-                  </button>
+    return (
+      <div className="katha-grid two">
+        <div className="katha-grid story">
+          {shortlistedStories.map((story, index) => {
+            const active = story.id === selectedStoryId;
+            return (
+              <button
+                key={story.id}
+                type="button"
+                className="katha-card katha-story-card"
+                data-active={active}
+                onClick={() => {
+                  setSelectedStoryId(story.id);
+                  setStoryDraft({
+                    title: story.title,
+                    synopsis: story.synopsis,
+                    storyText: story.storyText,
+                  });
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                  <div className="katha-story-title">{story.title}</div>
+                  <StatusPill label={index === 0 ? "Primary" : `Backup ${index}`} tone={index === 0 ? "ok" : "idle"} />
                 </div>
-              }
-            />
-            {reelDrafts.length ? (
-              <div className="katha-reel-layout">
-                <div className="katha-note">
-                  <strong>Series</strong>
-                  <span>
-                    {job?.seriesBlueprint?.hook || "Hook pending."}
-                    {job?.seriesBlueprint?.emotionalProgression?.length
-                      ? ` Emotional flow: ${job.seriesBlueprint.emotionalProgression.join(" -> ")}.`
-                      : ""}
-                  </span>
+                <div className="katha-chip-row">
+                  <span className="katha-chip">{story.region}</span>
+                  <span className="katha-chip">Score {story.score}</span>
                 </div>
-
-                <div className="katha-reel-strip">
-                  {reelDrafts.map((reel) => (
-                    <button
-                      key={reel.index}
-                      type="button"
-                      className="katha-reel-tab"
-                      data-active={selectedReel?.index === reel.index}
-                      onClick={() => setSelectedReelIndex(reel.index)}
-                    >
-                      <strong>Reel {reel.index}</strong>
-                      <span>{reel.title}</span>
-                    </button>
-                  ))}
-                </div>
-
-                {selectedReel ? (
-                  <div className="katha-reel-editor">
-                    <div className="katha-editor-col">
-                      <div className="katha-editor-meta">
-                        <StatusPill label={selectedReel.assetStatus || "pending"} tone={selectedReel.assetStatus === "ready" ? "ok" : "idle"} />
-                        <StatusPill label={selectedReel.renderStatus || "pending"} tone={selectedReel.renderStatus === "ready" ? "ok" : "idle"} />
-                      </div>
-                      <label className="katha-field">
-                        <span>Reel title</span>
-                        <input
-                          className="katha-input"
-                          value={selectedReel.title}
-                          onChange={(event) => updateReelField(selectedReel.index, "title", event.target.value)}
-                        />
-                      </label>
-                      <label className="katha-field">
-                        <span>Hook</span>
-                        <textarea
-                          className="katha-textarea"
-                          rows={3}
-                          value={selectedReel.hook}
-                          onChange={(event) => updateReelField(selectedReel.index, "hook", event.target.value)}
-                        />
-                      </label>
-                      <label className="katha-field">
-                        <span>Narration</span>
-                        <textarea
-                          className="katha-textarea"
-                          rows={7}
-                          value={selectedReel.narration}
-                          onChange={(event) => updateReelField(selectedReel.index, "narration", event.target.value)}
-                        />
-                      </label>
-                      <label className="katha-field">
-                        <span>On-screen text</span>
-                        <textarea
-                          className="katha-textarea"
-                          rows={4}
-                          value={selectedReel.onscreenText}
-                          onChange={(event) => updateReelField(selectedReel.index, "onscreenText", event.target.value)}
-                        />
-                      </label>
-                    </div>
-
-                    <div className="katha-editor-col">
-                      <label className="katha-field">
-                        <span>Image prompt</span>
-                        <textarea
-                          className="katha-textarea"
-                          rows={6}
-                          value={selectedReel.imagePrompt}
-                          onChange={(event) => updateReelField(selectedReel.index, "imagePrompt", event.target.value)}
-                        />
-                      </label>
-                      <label className="katha-field">
-                        <span>Music mood</span>
-                        <textarea
-                          className="katha-textarea"
-                          rows={4}
-                          value={selectedReel.musicPrompt}
-                          onChange={(event) => updateReelField(selectedReel.index, "musicPrompt", event.target.value)}
-                        />
-                      </label>
-                      <label className="katha-field">
-                        <span>Cliffhanger / transition</span>
-                        <textarea
-                          className="katha-textarea"
-                          rows={4}
-                          value={selectedReel.cliffhanger}
-                          onChange={(event) => updateReelField(selectedReel.index, "cliffhanger", event.target.value)}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            ) : (
-              <EmptyState>Run Agent 2</EmptyState>
-            )}
-          </section>
+              </button>
+            );
+          })}
         </div>
-      );
-    }
 
-    if (workspaceTab === "assets") {
-      return (
-        <div className="katha-grid">
-          <section className="katha-panel katha-section">
-            <SectionHeader
-              eyebrow="Asset Wall"
-              title="Per-reel media bundles"
-              actions={
-                <button type="button" className="katha-button" onClick={renderAll} disabled={!canRender}>
-                  {busy === "render" ? "Rendering reel pack..." : "Render 7 reels"}
-                </button>
-              }
-            />
-            {job?.assets?.length ? (
-              <div className="katha-preview-grid">
-                {job.assets.map((asset) => {
-                  const reel = reelDrafts.find((item) => item.index === asset.reelIndex);
-                  return (
-                    <div key={asset.reelIndex} className="katha-preview-card">
-                      <div className="katha-preview-visual">
-                        <img src={asset.imageUrl} alt={reel?.title || `Reel ${asset.reelIndex}`} />
-                        <div className="katha-preview-overlay">{reel?.onscreenText}</div>
-                      </div>
-                      <div className="katha-preview-body">
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
-                          <div style={{ fontWeight: 800 }}>{reel?.title || `Reel ${asset.reelIndex}`}</div>
-                          <StatusPill label={`${Math.round(asset.durationSec)} sec`} tone="idle" />
-                        </div>
-                        <div className="katha-audio-stack">
-                          <audio controls src={asset.voiceoverUrl} />
-                          <audio controls src={asset.musicUrl} />
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+        <div className="katha-card pad">
+          {selectedStory ? (
+            <div className="katha-grid">
+              <div className="katha-note" style={{ padding: 0 }}>
+                <strong>{selectedStory.title}</strong>
+                <span>{selectedStory.synopsis}</span>
               </div>
-            ) : (
-              <EmptyState>Run Agent 3</EmptyState>
-            )}
-          </section>
+              <div className="katha-chip-row">
+                <span className="katha-chip">{selectedStory.theme}</span>
+                <span className="katha-chip">{selectedStory.ageTone}</span>
+                <span className="katha-chip">{selectedStory.copyrightStatus}</span>
+              </div>
+              <div className="katha-note" style={{ padding: 0 }}>
+                <strong>Authenticity</strong>
+                <span>{selectedStory.authenticityNotes}</span>
+              </div>
+              <div className="katha-source-list">
+                {selectedStory.sourceLinks?.map((link) => (
+                  <a key={link.url} href={link.url} target="_blank" rel="noreferrer" className="katha-card katha-source-link">
+                    <span>{link.label}</span>
+                    <StatusPill label="Source" tone="idle" />
+                  </a>
+                ))}
+              </div>
+              <button type="button" className="katha-button" onClick={() => setActiveTab("agent2")}>
+                Open Agent 2
+              </button>
+            </div>
+          ) : (
+            <EmptyState>Select a story</EmptyState>
+          )}
         </div>
-      );
+      </div>
+    );
+  };
+
+  const renderAgent2Tab = () => {
+    if (!selectedStory) {
+      return <EmptyState>Complete Agent 1</EmptyState>;
     }
 
     return (
       <div className="katha-grid">
-        <section className="katha-panel katha-section">
-          <SectionHeader
-            eyebrow="Export Deck"
-            title="Exports"
-            actions={
-              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-                {busy === "render" ? (
-                  <StatusPill label={`${renderProgress.done}/${renderProgress.total} ${renderProgress.current}`} tone="live" />
-                ) : null}
-                {zipBlob ? (
-                  <button type="button" className="katha-button" onClick={() => downloadBlob(zipBlob, zipName)}>
-                    Download ZIP
-                  </button>
-                ) : null}
-              </div>
-            }
-          />
-          {exportsState.length ? (
-            <div className="katha-export-list">
-              {exportsState.map((item) => (
-                <div key={item.reelIndex} className="katha-export-row">
-                  <div className="katha-export-meta">
-                    <div className="katha-export-title">{item.title || `Reel ${item.reelIndex}`}</div>
-                    <div className="katha-export-sub">
-                      {item.fileName} · {formatBytes(item.sizeBytes)}
-                    </div>
-                  </div>
-                  <StatusPill label={item.status} tone={item.status === "ready" ? "ok" : "error"} />
-                  {item.status === "ready" && item.blob ? (
-                    <button type="button" className="katha-button-secondary" onClick={() => downloadBlob(item.blob, item.fileName)}>
-                      Download
-                    </button>
-                  ) : (
-                    <div className="katha-export-sub">{item.error || "Render failed"}</div>
-                  )}
-                </div>
+        <div className="katha-card pad">
+          <div className="katha-grid">
+            <label className="katha-field">
+              <span>Story title</span>
+              <input
+                className="katha-input"
+                value={storyDraft.title}
+                onChange={(event) => setStoryDraft((current) => ({ ...current, title: event.target.value }))}
+              />
+            </label>
+
+            <label className="katha-field">
+              <span>Synopsis</span>
+              <textarea
+                className="katha-textarea"
+                rows={4}
+                value={storyDraft.synopsis}
+                onChange={(event) => setStoryDraft((current) => ({ ...current, synopsis: event.target.value }))}
+              />
+            </label>
+
+            <label className="katha-field">
+              <span>Source narrative</span>
+              <textarea
+                className="katha-textarea"
+                rows={8}
+                value={storyDraft.storyText}
+                onChange={(event) => setStoryDraft((current) => ({ ...current, storyText: event.target.value }))}
+              />
+            </label>
+
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+              <StatusPill label={reelDrafts.length === 7 ? "7 reels ready" : "Not built"} tone={reelDrafts.length === 7 ? "ok" : "warn"} />
+              <button type="button" className="katha-button" onClick={buildBlueprint} disabled={!canRunAgent2}>
+                {busy === "blueprint" ? "Running..." : "Run Agent 2"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {reelDrafts.length ? (
+          <>
+            <div className="katha-reel-strip">
+              {reelDrafts.map((reel) => (
+                <button
+                  key={reel.index}
+                  type="button"
+                  className="katha-reel-tab"
+                  data-active={selectedReel?.index === reel.index}
+                  onClick={() => setSelectedReelIndex(reel.index)}
+                >
+                  <strong>Reel {reel.index}</strong>
+                  <span>{reel.title}</span>
+                </button>
               ))}
             </div>
-          ) : (
-            <EmptyState>Run Agent 4</EmptyState>
-          )}
-        </section>
+
+            {selectedReel ? (
+              <div className="katha-card katha-reel-editor">
+                <div className="katha-editor-col">
+                  <label className="katha-field">
+                    <span>Reel title</span>
+                    <input
+                      className="katha-input"
+                      value={selectedReel.title}
+                      onChange={(event) => updateReelField(selectedReel.index, "title", event.target.value)}
+                    />
+                  </label>
+                  <label className="katha-field">
+                    <span>Hook</span>
+                    <textarea
+                      className="katha-textarea"
+                      rows={3}
+                      value={selectedReel.hook}
+                      onChange={(event) => updateReelField(selectedReel.index, "hook", event.target.value)}
+                    />
+                  </label>
+                  <label className="katha-field">
+                    <span>Narration</span>
+                    <textarea
+                      className="katha-textarea"
+                      rows={7}
+                      value={selectedReel.narration}
+                      onChange={(event) => updateReelField(selectedReel.index, "narration", event.target.value)}
+                    />
+                  </label>
+                </div>
+
+                <div className="katha-editor-col">
+                  <label className="katha-field">
+                    <span>On-screen text</span>
+                    <textarea
+                      className="katha-textarea"
+                      rows={4}
+                      value={selectedReel.onscreenText}
+                      onChange={(event) => updateReelField(selectedReel.index, "onscreenText", event.target.value)}
+                    />
+                  </label>
+                  <label className="katha-field">
+                    <span>Image prompt</span>
+                    <textarea
+                      className="katha-textarea"
+                      rows={5}
+                      value={selectedReel.imagePrompt}
+                      onChange={(event) => updateReelField(selectedReel.index, "imagePrompt", event.target.value)}
+                    />
+                  </label>
+                  <label className="katha-field">
+                    <span>Music mood</span>
+                    <textarea
+                      className="katha-textarea"
+                      rows={3}
+                      value={selectedReel.musicPrompt}
+                      onChange={(event) => updateReelField(selectedReel.index, "musicPrompt", event.target.value)}
+                    />
+                  </label>
+                  <label className="katha-field">
+                    <span>Cliffhanger</span>
+                    <textarea
+                      className="katha-textarea"
+                      rows={3}
+                      value={selectedReel.cliffhanger}
+                      onChange={(event) => updateReelField(selectedReel.index, "cliffhanger", event.target.value)}
+                    />
+                  </label>
+                </div>
+              </div>
+            ) : null}
+
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button type="button" className="katha-button" onClick={() => setActiveTab("agent3")} disabled={!canRunAgent3}>
+                Open Agent 3
+              </button>
+            </div>
+          </>
+        ) : null}
       </div>
     );
+  };
+
+  const renderAgent3Tab = () => {
+    if (!reelDrafts.length) {
+      return <EmptyState>Complete Agent 2</EmptyState>;
+    }
+
+    return (
+      <div className="katha-grid">
+        <div className="katha-card pad">
+          <div className="katha-grid two">
+            <label className="katha-field">
+              <span>Voice</span>
+              <select className="katha-select" value={voiceId} onChange={(event) => setVoiceId(event.target.value)}>
+                {voices.map((voice) => (
+                  <option key={voice.voice_id || "default"} value={voice.voice_id}>
+                    {voice.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "end" }}>
+              <button type="button" className="katha-button" onClick={generateAssets} disabled={!canRunAgent3}>
+                {busy === "assets" ? "Running..." : "Run Agent 3"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {job?.assets?.length ? (
+          <>
+            <div className="katha-progress">
+              <div className="katha-progress-bar" style={{ width: `${assetProgress}%` }} />
+            </div>
+            <div className="katha-grid preview">
+              {job.assets.map((asset) => {
+                const reel = reelDrafts.find((item) => item.index === asset.reelIndex);
+                return (
+                  <div key={asset.reelIndex} className="katha-card katha-preview-card">
+                    <div className="katha-preview-visual">
+                      <img src={asset.imageUrl} alt={reel?.title || `Reel ${asset.reelIndex}`} />
+                      <div className="katha-preview-overlay">{reel?.onscreenText}</div>
+                    </div>
+                    <div className="katha-preview-body">
+                      <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
+                        <div className="katha-export-title">{reel?.title || `Reel ${asset.reelIndex}`}</div>
+                        <StatusPill label={`${Math.round(asset.durationSec)} sec`} tone="idle" />
+                      </div>
+                      <div className="katha-audio-stack">
+                        <audio controls src={asset.voiceoverUrl} />
+                        <audio controls src={asset.musicUrl} />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <button type="button" className="katha-button" onClick={() => setActiveTab("agent4")} disabled={!canRunAgent4}>
+                Open Agent 4
+              </button>
+            </div>
+          </>
+        ) : (
+          <EmptyState>Run Agent 3</EmptyState>
+        )}
+      </div>
+    );
+  };
+
+  const renderAgent4Tab = () => {
+    if (!job?.assets?.length) {
+      return <EmptyState>Complete Agent 3</EmptyState>;
+    }
+
+    return (
+      <div className="katha-grid">
+        <div className="katha-card pad">
+          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <StatusPill label={busy === "render" ? renderProgress.current || "Running" : readyExportCount ? "Ready" : "Idle"} tone={busy === "render" ? "live" : readyExportCount ? "ok" : "idle"} />
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              {zipBlob ? (
+                <button type="button" className="katha-button-secondary" onClick={() => downloadBlob(zipBlob, zipName)}>
+                  Download ZIP
+                </button>
+              ) : null}
+              <button type="button" className="katha-button" onClick={renderAll} disabled={!canRunAgent4}>
+                {busy === "render" ? "Running..." : "Run Agent 4"}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {busy === "render" || exportsState.length ? (
+          <div className="katha-progress">
+            <div className="katha-progress-bar" style={{ width: `${renderProgressPercent}%` }} />
+          </div>
+        ) : null}
+
+        {exportsState.length ? (
+          <div className="katha-export-list">
+            {exportsState.map((item) => (
+              <div key={item.reelIndex} className="katha-card katha-export-row">
+                <div>
+                  <div className="katha-export-title">{item.title || `Reel ${item.reelIndex}`}</div>
+                  <div className="katha-export-sub">
+                    {item.fileName} · {formatBytes(item.sizeBytes)}
+                  </div>
+                </div>
+                <StatusPill label={item.status} tone={item.status === "ready" ? "ok" : "error"} />
+                {item.status === "ready" && item.blob ? (
+                  <button type="button" className="katha-button-secondary" onClick={() => downloadBlob(item.blob, item.fileName)}>
+                    Download
+                  </button>
+                ) : (
+                  <div className="katha-export-sub">{item.error || "Failed"}</div>
+                )}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <EmptyState>Run Agent 4</EmptyState>
+        )}
+      </div>
+    );
+  };
+
+  const stageBody = (() => {
+    switch (activeTab) {
+      case "setup":
+        return renderSetupTab();
+      case "agent1":
+        return renderAgent1Tab();
+      case "agent2":
+        return renderAgent2Tab();
+      case "agent3":
+        return renderAgent3Tab();
+      case "agent4":
+        return renderAgent4Tab();
+      default:
+        return null;
+    }
+  })();
+
+  const stageTitle = (() => {
+    switch (activeTab) {
+      case "setup":
+        return "Setup";
+      case "agent1":
+        return "Research + Collect";
+      case "agent2":
+        return "Story Architect";
+      case "agent3":
+        return "Asset Generator";
+      case "agent4":
+        return "Reel Editor";
+      default:
+        return "Setup";
+    }
   })();
 
   return (
@@ -1690,13 +1497,9 @@ export default function KathaStudio({ darkMode }) {
       style={{
         "--surface": darkMode ? "#070606" : "#f4ecdf",
         "--surface-deep": darkMode ? "#050404" : "#efe5d8",
-        "--hero-start": darkMode ? "#1a110d" : "#fff3e3",
-        "--hero-mid": darkMode ? "#4a2415" : "#ebcdb1",
-        "--hero-end": darkMode ? "#090809" : "#f8f1e8",
         "--panel": darkMode
           ? "linear-gradient(180deg, rgba(24,16,13,0.92), rgba(8,8,8,0.96))"
           : "linear-gradient(180deg, rgba(255,249,241,0.96), rgba(244,235,224,0.98))",
-        "--panel-soft": darkMode ? "rgba(8,7,7,0.48)" : "rgba(255,252,248,0.68)",
         "--inner": darkMode ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.68)",
         "--input": darkMode ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.82)",
         "--text": darkMode ? "#f7ebd1" : "#2f1a12",
@@ -1717,260 +1520,51 @@ export default function KathaStudio({ darkMode }) {
     >
       <style>{KATHA_CSS}</style>
       <div className="katha-frame">
-        <section className="katha-panel katha-hero">
-          <div className="katha-hero-grid">
-            <div style={{ display: "grid", gap: 18 }}>
-              <StatusPill label="Katha Studio" tone="warn" />
-              <h1 className="katha-display">
-                Kahani ko research se
-                <br />
-                <span>reel pack</span> tak clearly chalao.
-              </h1>
-              <div className="katha-chip-row">
-                <span className="katha-chip">Curated public-domain intake</span>
-                <span className="katha-chip">Hindi-belt oral narration</span>
-                <span className="katha-chip">7 connected reels</span>
-              </div>
-            </div>
-
-            <div className="katha-hero-metrics">
-              <StatCard label="Pipeline Stage" value={`${currentStage}/5`} sub={PIPELINE_STAGES[currentStage - 1]?.title || "Story Intake"} />
-              <StatCard label="Primary Story Score" value={primaryStoryScore || "--"} sub={selectedStory ? selectedStory.title : "No story selected"} />
-              <StatCard label="Assets Ready" value={readyAssetCount} sub={reelDrafts.length ? `${reelDrafts.length} total reels` : "Waiting for Agent 3"} />
-              <StatCard label="Exports Ready" value={readyExportCount} sub={zipBlob ? "ZIP bundle prepared" : "Waiting for Agent 4"} />
-            </div>
+        <section className="katha-panel katha-header">
+          <div>
+            <div className="katha-kicker">Katha Studio</div>
+            <h1 className="katha-title">
+              Step by step
+              <br />
+              <span>agent workflow</span>
+            </h1>
+          </div>
+          <div className="katha-header-meta">
+            <StatusPill label={busy || "idle"} tone={busy ? "live" : "idle"} />
+            <StatusPill label={selectedStory?.title || "No story"} tone={selectedStory ? "ok" : "warn"} />
+            <StatusPill label={`${readyAssetCount} assets`} tone={readyAssetCount ? "ok" : "idle"} />
+            <StatusPill label={`${readyExportCount} exports`} tone={readyExportCount ? "ok" : "idle"} />
           </div>
         </section>
 
-        {error ? <div className="katha-alert" style={{ marginTop: 18 }}>{error}</div> : null}
-
-        <div className="katha-layout">
-          <aside className="katha-rail">
-            <section className="katha-panel katha-section">
-              <SectionHeader
-                title="Modules"
-              />
-              <div className="katha-stage-list">
-                {PIPELINE_STAGES.map((stage, index) => (
-                  <div
-                    key={stage.id}
-                    className="katha-stage-item"
-                    data-active={currentStage === index + 1}
-                    data-complete={currentStage > index + 1}
-                  >
-                    <div className="katha-stage-number">{stage.number}</div>
-                    <div>
-                      <div className="katha-stage-title">{stage.title}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            <section className="katha-panel katha-section">
-              <SectionHeader
-                title="Story Intake"
-              />
-              <div className="katha-control-grid">
-                <label className="katha-field">
-                  <span>Source set</span>
-                  <select
-                    className="katha-select"
-                    value={filters.sourceSet}
-                    onChange={(event) => setFilters((current) => ({ ...current, sourceSet: event.target.value }))}
-                  >
-                    <option value="curated-public">Curated public-domain / cultural portals</option>
-                    <option value="manual-library">Manual library</option>
-                  </select>
-                </label>
-                <label className="katha-field">
-                  <span>Region</span>
-                  <select
-                    className="katha-select"
-                    value={filters.region}
-                    onChange={(event) => setFilters((current) => ({ ...current, region: event.target.value }))}
-                  >
-                    {REGIONS.map((region) => (
-                      <option key={region} value={region}>
-                        {region}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="katha-field">
-                  <span>Theme</span>
-                  <select
-                    className="katha-select"
-                    value={filters.theme}
-                    onChange={(event) => setFilters((current) => ({ ...current, theme: event.target.value }))}
-                  >
-                    {THEMES.map((theme) => (
-                      <option key={theme} value={theme}>
-                        {theme}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="katha-field">
-                  <span>Age tone</span>
-                  <select
-                    className="katha-select"
-                    value={filters.ageTone}
-                    onChange={(event) => setFilters((current) => ({ ...current, ageTone: event.target.value }))}
-                  >
-                    {AGE_TONES.map((tone) => (
-                      <option key={tone} value={tone}>
-                        {tone}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <button type="button" className="katha-button" onClick={startResearch} disabled={busy !== ""}>
-                  {busy === "research" ? "Researching..." : "Start research"}
-                </button>
-              </div>
-            </section>
-
-            <section className="katha-panel katha-section">
-              <SectionHeader
-                title="Agents"
-              />
-              <div className="katha-agent-list">
-                {agentStations.map((agent) => (
-                  <div key={agent.id} className="katha-agent-item">
-                    <div className="katha-agent-top">
-                      <div>
-                        <div className="katha-eyebrow">{agent.name}</div>
-                        <div className="katha-agent-name">{agent.title}</div>
-                      </div>
-                      <StatusPill label={agent.status} tone={getAgentTone(agent.status)} />
-                    </div>
-
-                    {agent.id === "a3" ? (
-                      <label className="katha-field">
-                        <span>Voice profile</span>
-                        <select className="katha-select" value={voiceId} onChange={(event) => setVoiceId(event.target.value)}>
-                          {voices.map((voice) => (
-                            <option key={voice.voice_id || "default"} value={voice.voice_id}>
-                              {voice.name}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : null}
-
-                    {agent.id === "a1" ? (
-                      <button type="button" className="katha-button-secondary" onClick={startResearch} disabled={busy !== ""}>
-                        Run Agent 1
-                      </button>
-                    ) : null}
-                    {agent.id === "a2" ? (
-                      <button type="button" className="katha-button-secondary" onClick={buildBlueprint} disabled={!canBuildBlueprint}>
-                        Run Agent 2
-                      </button>
-                    ) : null}
-                    {agent.id === "a3" ? (
-                      <button type="button" className="katha-button-secondary" onClick={generateAssets} disabled={!canGenerateAssets}>
-                        Run Agent 3
-                      </button>
-                    ) : null}
-                    {agent.id === "a4" ? (
-                      <button type="button" className="katha-button-secondary" onClick={renderAll} disabled={!canRender}>
-                        Run Agent 4
-                      </button>
-                    ) : null}
-                  </div>
-                ))}
-              </div>
-            </section>
-          </aside>
-
-          <main className="katha-main">
-            <section className="katha-panel katha-section">
-              <SectionHeader
-                title="Workspace"
-                actions={
-                  <div className="katha-tabs">
-                    {WORKSPACE_TABS.map((tab) => (
-                      <button
-                        key={tab.id}
-                        type="button"
-                        className="katha-tab"
-                        data-active={workspaceTab === tab.id}
-                        onClick={() => setWorkspaceTab(tab.id)}
-                      >
-                        {tab.label}
-                      </button>
-                    ))}
-                  </div>
-                }
-              />
-              {workspaceBody}
-            </section>
-          </main>
-
-          <aside className="katha-overview">
-            <section className="katha-panel katha-overview-card">
-              <SectionHeader
-                eyebrow="Story"
-                title={selectedStory ? selectedStory.title : "No story selected"}
-                actions={<StatusPill label={selectedStory ? selectedStory.region : "Waiting"} tone={selectedStory ? "idle" : "warn"} />}
-              />
-              {selectedStory ? (
-                <>
-                  <div className="katha-chip-row">
-                    <span className="katha-chip">{selectedStory.theme}</span>
-                    <span className="katha-chip">{selectedStory.ageTone}</span>
-                    <span className="katha-chip">{selectedStory.copyrightStatus}</span>
-                  </div>
-                </>
-              ) : null}
-            </section>
-
-            <section className="katha-panel katha-overview-card">
-              <SectionHeader
-                title="Review Gate"
-              />
-              <div className="katha-grid">
-                <div className="katha-note">
-                  <strong>Blueprint hook</strong>
-                  <span>{job?.seriesBlueprint?.hook || "Series hook pending."}</span>
-                </div>
-                <div className="katha-note">
-                  <strong>Asset completion</strong>
-                  <span>{readyAssetCount}/{reelDrafts.length || 7} reels with media bundles.</span>
-                </div>
-                <div className="katha-progress">
-                  <div className="katha-progress-bar" style={{ width: `${seriesProgress}%` }} />
-                </div>
-              </div>
-            </section>
-
-            <section className="katha-panel katha-overview-card">
-              <SectionHeader
-                title="Render"
-              />
-              <div className="katha-grid">
-                <div className="katha-note">
-                  <strong>Run</strong>
-                  <span>{busy === "render" ? renderProgress.current || "Rendering..." : readyExportCount ? "Rendered" : "Idle"}</span>
-                </div>
-                <div className="katha-progress">
-                  <div className="katha-progress-bar" style={{ width: `${exportProgress}%` }} />
-                </div>
-                <div className="katha-chip-row">
-                  <span className="katha-chip">{readyExportCount} ready reels</span>
-                  <span className="katha-chip">{zipBlob ? "ZIP prepared" : "ZIP pending"}</span>
-                </div>
-                {zipBlob ? (
-                  <button type="button" className="katha-button" onClick={() => downloadBlob(zipBlob, zipName)}>
-                    Download ZIP
-                  </button>
-                ) : null}
-              </div>
-            </section>
-          </aside>
+        <div className="katha-tabs">
+          {MODULE_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              className="katha-tab"
+              data-active={activeTab === tab.id}
+              disabled={!tabAccess[tab.id]}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
+
+        {error ? <div className="katha-alert">{error}</div> : null}
+
+        <section className="katha-panel katha-stage">
+          <div className="katha-stage-head">
+            <div>
+              <div className="katha-kicker">{MODULE_TABS.find((tab) => tab.id === activeTab)?.label}</div>
+              <div className="katha-stage-title">{stageTitle}</div>
+            </div>
+            {activeTab === "agent3" ? <StatusPill label={`${assetProgress}%`} tone={readyAssetCount ? "ok" : "idle"} /> : null}
+            {activeTab === "agent4" ? <StatusPill label={`${renderProgressPercent}%`} tone={readyExportCount ? "ok" : busy === "render" ? "live" : "idle"} /> : null}
+          </div>
+          {stageBody}
+        </section>
       </div>
     </div>
   );
